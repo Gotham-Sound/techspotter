@@ -8,10 +8,10 @@ spotting layers: Sound (playback, phone calls, sound reactions) and Video
 device.** After page load the site makes zero network requests: no CDNs, no
 analytics, no telemetry.
 
-Live at https://gothamsound.github.io/techspotter/ — drop a PDF, review the
+Live at https://gotham-sound.github.io/techspotter/ — drop a PDF, review the
 matrix, correct the parser with clicks. A fully synthetic demo show (generated
 in your browser, no script text anywhere) is at
-https://gothamsound.github.io/techspotter/#demo
+https://gotham-sound.github.io/techspotter/#demo
 
 The full brief is live: the scene-by-character matrix with review rails and
 source peek (hover any flagged artifact to see the original page region),

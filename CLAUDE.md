@@ -54,9 +54,10 @@ is `.sceneline` v2 (lean by default); CSV/XLSX secondary.
 
 ## Deployment
 
-Live since 2026-07-26: public repo `gothamsound/techspotter` (this clone is
+Live since 2026-07-26: public repo `Gotham-Sound/techspotter` (org moved 2026-08; this clone is
 `origin`), GitHub Pages serving `main` at
-https://gothamsound.github.io/techspotter/. Public history starts at the
+https://gotham-sound.github.io/techspotter/ (the pre-move
+gothamsound.github.io URL 404s: GitHub does not redirect Pages). Public history starts at the
 sanitized root; keep it that way (no real-production strings in commits).
 Footer on the page: "TechSpotter — all processing happens in your browser.
 Your script never leaves your device."
