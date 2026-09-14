@@ -51,3 +51,25 @@ test('normalize seats colon and doubled-word cues under the plain name', async (
   assert.deepEqual(p.characters.map((c) => c.name).sort(), ['MYRON', 'WANDA']);
   assert.deepEqual(p.rejects, []);
 });
+
+// PRE-#63 PIN (hub motion #63/#52, ruling pending): the generational-
+// suffix class as it stands under policy 2026.09.14, verified in the
+// field 2026-09-14. When the name_suffixes bump absorbs, this pin MUST
+// change with it: the comma form seats, suffixed names never fold or
+// offer against the bare base (gate the surname-prefix offer family),
+// and this comment goes away.
+test('pre-#63 pin: comma suffix chips, no-comma seats, base draws an offer', async () => {
+  const p = await parse(['SALLY JR.', 'SALLY, SR.', 'SALLY']);
+  assert.deepEqual(
+    p.characters.map((c) => c.name).sort(),
+    ['MYRON', 'SALLY', 'SALLY JR'],
+  );
+  assert.deepEqual(
+    p.rejects.map((r) => [r.name, r.reason]),
+    [['SALLY, SR', "charset ','"]],
+  );
+  assert.deepEqual(
+    p.merge_offers.map((o) => [o.variant, o.canonical]),
+    [['SALLY JR', 'SALLY']],
+  );
+});
