@@ -65,6 +65,14 @@
    "expect": false
   },
   {
+   "cue": "MORE",
+   "expect": false
+  },
+  {
+   "cue": "CONTINUED",
+   "expect": false
+  },
+  {
    "cue": "S",
    "expect": false
   },

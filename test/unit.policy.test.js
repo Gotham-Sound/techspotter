@@ -1,5 +1,5 @@
-// Pins the scriptparse policy mirror (policy_version 2026.07.27b,
-// absorbed per hub issue #33) so it cannot drift silently: the ruled
+// Pins the scriptparse policy mirror (policy_version 2026.09.14,
+// absorbed per hub issue #60; prior 2026.07.27b per #33) so it cannot drift silently: the ruled
 // contents are asserted as literals here, independent of the mirror file.
 // A failure here means the mirror was edited locally — which is never a
 // fix; divergences go to the hub as federation motions.
@@ -14,7 +14,7 @@ import {
 } from '../src/parser/policy.js';
 
 test('mirror carries the absorbed policy version', () => {
-  assert.equal(POLICY.policy_version, '2026.07.27b');
+  assert.equal(POLICY.policy_version, '2026.09.14');
 });
 
 test('channel_kinds and default: the issue #11 ruling, exactly', () => {
@@ -37,6 +37,7 @@ test('channel_kinds and default: the issue #11 ruling, exactly', () => {
     VOICE: 'voice',
     VOICEMAIL: 'voice',
     VM: 'voice',
+    'ON THE TV': 'tv',
   });
   assert.equal(POLICY.channel_kind_default, 'unknown');
 });
@@ -57,6 +58,10 @@ test('silent tier: tier moves and the issue #22 phone-device kin', () => {
     'ON SPEAKER',
     'OVER SPEAKER',
     'SPEAKERPHONE',
+    // The 2026-08-01 vocabulary batch (issues #44 + #36):
+    'OVER PHONE',
+    'INTO COMMS',
+    'INTO THE COMMS',
   ]);
   // Matching is dot- and space-insensitive (V.O. == VO).
   assert.ok(isStandardTag('VO'));

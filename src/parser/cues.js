@@ -4,7 +4,42 @@
 // followed by dialogue-band text). Furniture is structural, never a chip.
 
 import { bandOf, isFurniture } from './constants.js';
-import { isStandardTag, CUE_STOP_WORDS } from './policy.js';
+import { POLICY, isStandardTag, CUE_STOP_WORDS } from './policy.js';
+
+// norm_cue (hub corpus contract, vectors/normalize.json; issue #60): raw
+// cue line -> canonical name, '' = not a cue. Mirrors the reference's
+// normalize_text + norm_cue semantics at this bench's tag-aware unit:
+// quotes and bracketed asides drop, trailing [.:]+ drops, whitespace
+// collapses, adjacent doubled words collapse, a parenthetical-ONLY line
+// (the (MORE) class that once seated as a character here, issue #56) is
+// not a cue at all. Silent-tier tags strip via stripCueTags; channel and
+// unknown parentheticals stay in the name (variants are distinct
+// columns, this bench's ruled presentation) — the corpus pins only the
+// silent-tag and paren-only shapes, so both engines agree everywhere
+// the contract speaks.
+function normCueDetail(text) {
+  let t = text
+    .replace(/[“”"]/g, '')
+    .replace(/[’‘]/g, "'")
+    .replace(/\[[^\]]*\]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toUpperCase()
+    .replace(/[.:]+$/, '')
+    .trim();
+  if (!t || /^\([^()]*\)$/.test(t)) return { name: '', qualified: false };
+  const { name, qualified } = stripCueTags(t);
+  const words = name.replace(/[.:]+$/, '').trim().split(' ');
+  const deduped = [];
+  for (const w of words) {
+    if (!deduped.length || deduped[deduped.length - 1] !== w) deduped.push(w);
+  }
+  return { name: deduped.join(' '), qualified };
+}
+
+export const normCue = (raw) => normCueDetail(raw).name;
+
+const REJECT_TRAILING = POLICY.cue_reject_trailing ?? [];
 
 export function evaluateCue(line, nextLine, ctx) {
   if (bandOf(line.minX) !== 'cue') return null;
@@ -12,11 +47,15 @@ export function evaluateCue(line, nextLine, ctx) {
   const raw = line.text.trim().replace(/^\*+\s*/, '').replace(/\s*\*+$/, '');
   if (!/[A-Z]/.test(raw) || raw !== raw.toUpperCase()) return null;
 
-  const { name, qualified } = stripCueTags(raw);
+  const { name, qualified } = normCueDetail(raw);
   if (!name || !/[A-Z]/.test(name)) return null;
   if (isFurniture(name) || ctx.furniture.has(name) || ctx.furniture.has(raw)) {
     return null;
   }
+  // Trailing-glyph refusal is SILENT by ruling (#42, policy data): the
+  // rule exists to suppress transition artifacts ("CUT TO -"), a true
+  // negative grouped with transitions, never a chip.
+  if (REJECT_TRAILING.some((g) => name.endsWith(g))) return null;
 
   const followed =
     nextLine && ['dialogue', 'paren'].includes(bandOf(nextLine.minX));

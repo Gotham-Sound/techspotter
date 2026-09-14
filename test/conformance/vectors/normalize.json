@@ -1,0 +1,57 @@
+{
+ "cases": [
+  {
+   "expect": "",
+   "raw": "(MORE)"
+  },
+  {
+   "expect": "",
+   "raw": "(beat)"
+  },
+  {
+   "expect": "",
+   "raw": "(CONT'D)"
+  },
+  {
+   "expect": "MYRON",
+   "raw": "MYRON (V.O.)"
+  },
+  {
+   "expect": "MYRON",
+   "raw": "MYRON (CONT'D):"
+  },
+  {
+   "expect": "MYRON",
+   "raw": "MYRON:"
+  },
+  {
+   "expect": "MYRON",
+   "raw": "MYRON."
+  },
+  {
+   "expect": "MYRON",
+   "raw": "“MYRON”"
+  },
+  {
+   "expect": "MYRON WANDA",
+   "raw": "  MYRON   WANDA  "
+  },
+  {
+   "expect": "MYRON",
+   "raw": "MYRON MYRON"
+  },
+  {
+   "expect": "MORE",
+   "raw": "MORE"
+  },
+  {
+   "expect": "CONTINUED",
+   "raw": "CONTINUED"
+  },
+  {
+   "expect": "MYRON",
+   "raw": "myron (o.s.)"
+  }
+ ],
+ "contract": "norm_cue(raw) -> canonical cue string (empty = not a cue; gate vectors consume the canonical form)"
+}

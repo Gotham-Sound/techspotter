@@ -408,19 +408,37 @@
   {
    "cue": "MYRON (OVER PHONE)",
    "expect": {
-    "base": "MYRON (OVER PHONE)",
+    "base": "MYRON",
     "channel": null,
     "kind": null,
-    "tier": null
+    "tier": "standard"
    }
   },
   {
    "cue": "MYRON (ON THE TV)",
    "expect": {
-    "base": "MYRON (ON THE TV)",
+    "base": "MYRON",
+    "channel": "ON THE TV",
+    "kind": "tv",
+    "tier": "channel"
+   }
+  },
+  {
+   "cue": "MYRON (INTO COMMS)",
+   "expect": {
+    "base": "MYRON",
     "channel": null,
     "kind": null,
-    "tier": null
+    "tier": "standard"
+   }
+  },
+  {
+   "cue": "MYRON (INTO THE COMMS)",
+   "expect": {
+    "base": "MYRON",
+    "channel": null,
+    "kind": null,
+    "tier": "standard"
    }
   }
  ],

@@ -20,12 +20,12 @@ import {
   foldCandidates,
 } from '../src/parser/policy.js';
 import { stripBurnIns, cell, repeatThreshold } from '../src/parser/burnin.js';
-import { evaluateCue } from '../src/parser/cues.js';
+import { evaluateCue, normCue } from '../src/parser/cues.js';
 import { BANDS } from '../src/parser/constants.js';
 
-// The ack number from the hub's Phase-0 publication comment (#40).
+// The ack number from the hub's queue work order (#60; corpus 2026.09.14).
 const MANIFEST_ACK =
-  '4a4f8fb1ff4dac0074a039358b514e3cb27678718dc22c8d13d06cd943027986';
+  '307dc50a1a7012b1c76dcea901adb7ce7877507ebd3c3103db238f166bee743a';
 
 const dir = new URL('./conformance/', import.meta.url);
 const raw = (p) => readFileSync(new URL(p, dir));
@@ -43,7 +43,7 @@ test('corpus manifest matches the ack number and binds our policy pin', () => {
 
 test('fold.json: fold(cue) -> {base, channel, tier, kind}', () => {
   const { cases } = vectors('fold');
-  assert.equal(cases.length, 47);
+  assert.equal(cases.length, 49);
   for (const c of cases) {
     const f = foldName(c.cue);
     assert.deepEqual(
@@ -72,24 +72,22 @@ function cueSemanticOk(cue) {
   return Boolean(r && r.accept);
 }
 
-// KNOWN DIVERGENCE, motion filed on the hub (the #40 red-becomes-motion
-// path): the reference gate refuses a trailing hyphen (an interruption /
-// linebreak artifact); this bench's charset gate allows '-' anywhere, so
-// "MYRON-" seats here. NEVER fix locally (constitution): the pin below
-// asserts the divergence still exists, so an unruled local fix fails
-// this test and forces the bookkeeping. Remove the pin when the motion's
-// ruling is absorbed.
-const GATE_DIVERGENCES = new Set(['MYRON-']);
-
+// The "MYRON-" divergence pin (motion #42) dropped 2026-09-14: the
+// ruling landed as policy data (cue_reject_trailing) and this engine
+// absorbed it, so the vector asserts equality like every other.
 test('cue_gate.json: cue_semantic_ok(cue) -> bool', () => {
   const { cases } = vectors('cue_gate');
-  assert.equal(cases.length, 18);
+  assert.equal(cases.length, 20);
   for (const c of cases) {
-    if (GATE_DIVERGENCES.has(c.cue)) {
-      assert.notEqual(cueSemanticOk(c.cue), c.expect, `${c.cue}: divergence resolved — absorb the ruling and drop the pin`);
-      continue;
-    }
     assert.equal(cueSemanticOk(c.cue), c.expect, c.cue);
+  }
+});
+
+test('normalize.json: norm_cue(raw) -> canonical cue string', () => {
+  const { cases } = vectors('normalize');
+  assert.equal(cases.length, 13);
+  for (const c of cases) {
+    assert.equal(normCue(c.raw), c.expect, JSON.stringify(c.raw));
   }
 });
 
