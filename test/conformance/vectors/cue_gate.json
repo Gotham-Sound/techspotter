@@ -73,6 +73,14 @@
    "expect": false
   },
   {
+   "cue": "SEASON 1",
+   "expect": false
+  },
+  {
+   "cue": "EPISODE #101",
+   "expect": false
+  },
+  {
    "cue": "S",
    "expect": false
   },

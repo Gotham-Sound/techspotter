@@ -76,6 +76,10 @@ export function splitDualHeader(words) {
   const left = words.slice(0, k + 1).map((w) => w[0]).join(' ').trim();
   const right = words.slice(k + 1).map((w) => w[0]).join(' ').trim();
   for (const half of [left, right]) {
+    // A raw colon-terminated half is a list label (INTERIORS: /
+    // EXTERIORS:, the cuper sets-list shape), not a cue name: normalize
+    // strips the colon, so this fence tests the half AS PRINTED.
+    if (half.endsWith(':')) return null;
     const cue = normCue(half);
     if (!cueTextOk(cue)) return null;
   }

@@ -1,5 +1,5 @@
 // MIRROR of scriptparse policy.json, policy_version 2026.09.15b
-// (EARLY absorption per hub issue #68 + its cumulative delta; prior #60, #33). The DATA object below
+// (absorbed per hub issue #68 through the merged train, main bytes; prior #60, #33). The DATA object below
 // is the hub file verbatim, notes included: never edit it locally. A
 // divergence is a federation motion in scriptparse, not a local fix.
 // The functions after it are the JS interpreter, mirroring policy.py
@@ -147,7 +147,8 @@ export const POLICY = Object.freeze({
     "PART",
     "CHAPTER",
     "SCENE",
-    "DAY"
+    "DAY",
+    "SEASON"
   ],
   "furniture_number_words": [
     "ONE",
@@ -161,7 +162,7 @@ export const POLICY = Object.freeze({
     "NINE",
     "TEN"
   ],
-  "_furniture_note": "Rule type 'numbered-furniture': <word> + (digits, optionally letter-suffixed, or a number word) is title furniture, never a character (EPISODE 102, ACT 2, DAY 3). DAY PLAYER is a real character: PLAYER is neither digits nor a number word.",
+  "_furniture_note": "Rule type 'numbered-furniture': <word> + (digits, optionally letter-suffixed, or a number word) is title furniture, never a character (EPISODE 102, ACT 2, DAY 3). DAY PLAYER is a real character: PLAYER is neither digits nor a number word. SEASON joined 2026-09-15 (the #67 golden STOP: cuper's running header SEASON 1 seated in a phantom cold open); same rule type, golden-evidenced. The number part of the rule also accepts an optional numbered_part_marker prefix (EPISODE #101 is furniture exactly like EPISODE 101: the #52 marker admission must never become a furniture bypass).",
   "transitions_non_character": [
     "CUT TO",
     "DISSOLVE TO",

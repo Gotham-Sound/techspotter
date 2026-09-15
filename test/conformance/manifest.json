@@ -12,14 +12,14 @@
    "sha256": "cebc997ac55066d95a05aa2b44cf2232170d6034cf4c0579bbe51f6434a188e8"
   },
   {
-   "cases": 20,
+   "cases": 22,
    "path": "vectors/cue_gate.json",
-   "sha256": "16ec7ccd957a0f83994072109fe7dcc2dec01f67305146879e677240506e57ce"
+   "sha256": "8e36f1dea7a8ab9b6ed7739c29428eb02fbdfedf41c2d0688d835c8629570f29"
   },
   {
-   "cases": 6,
+   "cases": 7,
    "path": "vectors/dual.json",
-   "sha256": "03bd7fce24ddcb7902283dd3c103e211a3f7c7b90ec8ee3964700a65b59bf047"
+   "sha256": "092e718af01d189c3134f22a8b2f1136c3eee0c9f112bdda3ffe95ca94828f5d"
   },
   {
    "cases": 51,

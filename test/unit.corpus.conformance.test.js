@@ -23,10 +23,10 @@ import { stripBurnIns, cell, repeatThreshold } from '../src/parser/burnin.js';
 import { evaluateCue, normCue, cueCharsetOk, splitDualHeader } from '../src/parser/cues.js';
 import { BANDS } from '../src/parser/constants.js';
 
-// The ack number from #68 DELTA 2 (corpus 2026.09.15b at stack head
-// feat/issue-69-dual-split).
+// The ack number at MERGED main (the gated caboose; corpus 2026.09.15b,
+// 149 cases, re-cut additions included).
 const MANIFEST_ACK =
-  '6722219149903a5b66750caa9f5f2f10232c87dab309ee2a9cb6cf2132c522e8';
+  'cc1b120f645333dd9c97e0253807e0677b7a3b638b0316104bd8a8275e320b2b';
 
 const dir = new URL('./conformance/', import.meta.url);
 const raw = (p) => readFileSync(new URL(p, dir));
@@ -78,7 +78,7 @@ function cueSemanticOk(cue) {
 // absorbed it, so the vector asserts equality like every other.
 test('cue_gate.json: cue_semantic_ok(cue) -> bool', () => {
   const { cases } = vectors('cue_gate');
-  assert.equal(cases.length, 20);
+  assert.equal(cases.length, 22);
   for (const c of cases) {
     assert.equal(cueSemanticOk(c.cue), c.expect, c.cue);
   }
@@ -128,7 +128,7 @@ test('offers.json: fold_candidates(names), channel tier only', () => {
 
 test('dual.json: split_dual_header -> [left, right, boundary] or null', () => {
   const { cases } = vectors('dual');
-  assert.equal(cases.length, 6);
+  assert.equal(cases.length, 7);
   for (const c of cases) {
     assert.deepEqual(splitDualHeader(c.words), c.expect, JSON.stringify(c.words));
   }

@@ -117,6 +117,21 @@
      400.0
     ]
    ]
+  },
+  {
+   "expect": null,
+   "words": [
+    [
+     "INTERIORS:",
+     180.0,
+     250.0
+    ],
+    [
+     "EXTERIORS:",
+     380.0,
+     452.0
+    ]
+   ]
   }
  ],
  "contract": "split_dual_header(words[(text,x0,x1)]) -> [left_text, right_text, boundary_x] or null: exactly one gap > dual_dialogue.min_gap_pt, both halves pass the full cue gate; boundary is the midpoint of the two groups' x starts"
