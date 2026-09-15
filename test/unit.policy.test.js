@@ -14,7 +14,7 @@ import {
 } from '../src/parser/policy.js';
 
 test('mirror carries the absorbed policy version', () => {
-  assert.equal(POLICY.policy_version, '2026.09.15');
+  assert.equal(POLICY.policy_version, '2026.09.15b');
 });
 
 test('channel_kinds and default: the issue #11 ruling, exactly', () => {

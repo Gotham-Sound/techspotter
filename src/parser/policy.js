@@ -1,12 +1,12 @@
-// MIRROR of scriptparse policy.json, policy_version 2026.09.15
-// (EARLY absorption per hub issue #68, Peter direction; prior #60, #33). The DATA object below
+// MIRROR of scriptparse policy.json, policy_version 2026.09.15b
+// (EARLY absorption per hub issue #68 + its cumulative delta; prior #60, #33). The DATA object below
 // is the hub file verbatim, notes included: never edit it locally. A
 // divergence is a federation motion in scriptparse, not a local fix.
 // The functions after it are the JS interpreter, mirroring policy.py
 // (the Python reference interpreter) matching semantics.
 
 export const POLICY = Object.freeze({
-  "policy_version": "2026.09.15",
+  "policy_version": "2026.09.15b",
   "_comment": "The cross-language fold/gate policy (scriptparse PR #2, frozen 2026-07-26; issue #11 rulings executed 2026-07-27). This file IS the contract: declarative lists, maps, and enumerated rule types only: a JS interpreter must be able to mirror it exactly. No regexes, no code. policy.py is the Python reference interpreter.",
   "cue_stop_words": [
     "AND",
@@ -33,7 +33,16 @@ export const POLICY = Object.freeze({
     "scene_heading": "COLD OPEN",
     "follow_max_gap_pt": 14
   },
-  "_cold_open_note": "RULED (Peter, 2026-09-15; issue #66, completing the #63 field case). Rule-type semantics: a pre-heading region containing a SEATABLE cue (candidate + cue-band position + dialogue-band follow, the same three tests as in-scene seating, PLUS proximity: the immediately following line must start within follow_max_gap_pt of the cue line's bottom, about one dialogue line-advance; real dialogue sits tight under its cue while title-page blocks float apart, which is what keeps a centered title page from faking a cold open) becomes an implicit leading scene with this heading; in numbered drafts it takes scene_id_numbered (nothing renumbers), in bare-slug drafts it takes the next ordinal and every subsequent ordinal shifts (blessed by name, the mb101 pattern). Inert front matter (title page, cast page: no seatable cue) stays front matter, and cue-shaped near-misses there always run the reject scanner (never-silent, the #37 doctrine). Both engines emit these exact id/heading strings so the interchange agrees.",
+  "_cold_open_note": "RULED (Peter, 2026-09-15; issue #66, completing the #63 field case). Rule-type semantics: a pre-heading region containing a SEATABLE cue (candidate + cue-band position + dialogue-band follow, the same three tests as in-scene seating, PLUS proximity: the immediately following line must start within follow_max_gap_pt of the cue line's bottom, about one dialogue line-advance; real dialogue sits tight under its cue while title-page blocks float apart, which is what keeps a centered title page from faking a cold open; AND the follow must contain a lowercase letter: dialogue is prose, while all-caps list rows such as a sets list or cast page never qualify, the cml sets-list phantom caught by the #69 evidence pre-golden) becomes an implicit leading scene with this heading; in numbered drafts it takes scene_id_numbered (nothing renumbers), in bare-slug drafts it takes the next ordinal and every subsequent ordinal shifts (blessed by name, the mb101 pattern). Inert front matter (title page, cast page: no seatable cue) stays front matter, and cue-shaped near-misses there always run the reject scanner (never-silent, the #37 doctrine). Both engines emit these exact id/heading strings so the interchange agrees.",
+  "numbered_prose_scenes": {
+    "require_both_margins": true,
+    "scene_heading_fallback": "SCENE"
+  },
+  "_numbered_prose_scenes_note": "RULED (Peter, 2026-09-15; issue #71): in a draft that is ALREADY numbered, a margin-number row is boundary evidence on its own; writers open intercut/mini-slug scenes with prose and the room addresses scenes by those numbers. Rule-type semantics: the row must carry the SAME id at BOTH ends (the filed both-margins fence) and start in the left margin, in a numbered-mode draft only (bare-slug drafts are never loosened: no numbers, no trust). Heading: the body itself when it is all caps (the mini-slug phrase), else '<scene_heading_fallback> <id>': the fallback is the guaranteed contract, the phrase is presentation. OMITTED and OMITTED. bodies never open a prose scene. Slug-shaped and OMITTED rows keep their existing handling, which runs first.",
+  "dual_dialogue": {
+    "min_gap_pt": 40
+  },
+  "_dual_dialogue_note": "RULED (Peter, 2026-09-15; issue #69): split, don't rail. A cue-band row that parts at exactly ONE gap wider than min_gap_pt into two groups that EACH pass the full cue gate (normalize + semantic + charset) is a dual-dialogue header: emit two cues and attribute the dialogue rows beneath by the column boundary (the midpoint between the two groups' x starts): a row entirely left of the boundary is the left cue's line, entirely right is the right cue's, and the block ends at the first row that spans the boundary or is itself a cue candidate (a one-column continuation is indistinguishable from the next single cue and must never be consumed). BOTH columns must gather at least one dialogue line or the row stays a wide reject (which keeps intercut cards and sets lists railed). Geometry is data per the burn-in precedent; the split is corpus-vectored (vectors/dual.json) so both engines part rows identically.",
   "standard_tags": [
     "V.O.",
     "O.S.",

@@ -1,0 +1,123 @@
+{
+ "cases": [
+  {
+   "expect": [
+    "HOOT",
+    "FRED",
+    270.0
+   ],
+   "words": [
+    [
+     "HOOT",
+     180.0,
+     220.0
+    ],
+    [
+     "FRED",
+     360.0,
+     400.0
+    ]
+   ]
+  },
+  {
+   "expect": [
+    "SALLY, JR.",
+    "SALLY, SR.",
+    240.5
+   ],
+   "words": [
+    [
+     "SALLY,",
+     141.0,
+     190.0
+    ],
+    [
+     "JR.",
+     195.0,
+     220.0
+    ],
+    [
+     "SALLY,",
+     340.0,
+     389.0
+    ],
+    [
+     "SR.",
+     394.0,
+     419.0
+    ]
+   ]
+  },
+  {
+   "expect": null,
+   "words": [
+    [
+     "HOOT",
+     180.0,
+     220.0
+    ],
+    [
+     "&%",
+     360.0,
+     380.0
+    ]
+   ]
+  },
+  {
+   "expect": null,
+   "words": [
+    [
+     "THE",
+     100.0,
+     130.0
+    ],
+    [
+     "ROCKET",
+     135.0,
+     190.0
+    ]
+   ]
+  },
+  {
+   "expect": null,
+   "words": [
+    [
+     "A",
+     100.0,
+     110.0
+    ],
+    [
+     "B",
+     200.0,
+     210.0
+    ],
+    [
+     "C",
+     320.0,
+     330.0
+    ]
+   ]
+  },
+  {
+   "expect": null,
+   "words": [
+    [
+     "CUT",
+     180.0,
+     205.0
+    ],
+    [
+     "TO",
+     210.0,
+     228.0
+    ],
+    [
+     "MORE",
+     360.0,
+     400.0
+    ]
+   ]
+  }
+ ],
+ "contract": "split_dual_header(words[(text,x0,x1)]) -> [left_text, right_text, boundary_x] or null: exactly one gap > dual_dialogue.min_gap_pt, both halves pass the full cue gate; boundary is the midpoint of the two groups' x starts"
+}

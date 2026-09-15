@@ -52,9 +52,11 @@ test('gate rejects surface with reasons; matrix stays clean', async () => {
   // Epithet characters with prepositions are real (Peter's ruling): MAN IN
   // BLACK is a column, not a chip. Numbered parts seat since the #52
   // charset ruling (trailing marker+digits is an admitted shape).
+  // Dual-dialogue headers split and seat since the #69 ruling
+  // (split-don't-rail): LOLA and DENNY are columns, not a wide chip.
   assert.deepEqual(
     parsed.characters.map((c) => c.name).sort(),
-    ['MAN IN BLACK', 'MERC #1', 'VICTOR'],
+    ['DENNY', 'LOLA', 'MAN IN BLACK', 'MERC #1', 'VICTOR'],
   );
 
   const byName = Object.fromEntries(parsed.rejects.map((r) => [r.name, r]));
@@ -62,7 +64,7 @@ test('gate rejects surface with reasons; matrix stays clean', async () => {
   assert.ok(!('MERC #1' in byName));
   assert.equal(byName['ELEANOR FROM HR'].reason, "word 'FROM'");
   assert.equal(byName['GIRLS/CASSIDY'].reason, "charset '/'");
-  assert.equal(byName['LOLA  DENNY'].reason, 'wide (dual dialogue?)');
+  assert.ok(!('LOLA  DENNY' in byName));
 
   // every occurrence carries a source-peek anchor (page sheet + bbox)
   for (const r of parsed.rejects) {

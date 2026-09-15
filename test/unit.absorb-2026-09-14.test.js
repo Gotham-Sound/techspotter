@@ -108,3 +108,86 @@ test('#66 negative: a floating title page never fakes a cold open', async () => 
   assert.deepEqual(p.scenes.map((s) => s.heading), ['INT. COOP - DAY']);
   assert.deepEqual(p.characters.map((c) => c.name), ['MYRON']);
 });
+
+// #68 DELTA batch (policy 2026.09.15b): #69 dual split end to end, #71
+// numbered-prose boundaries, #70 E/I. parity, and the cold-open
+// lowercase-follow fence, each through a real parse.
+test('#69: a dual header seats both halves and attributes columns', async () => {
+  const { buildPdf } = await import('./fixtures/pdfgen.js');
+  const runs = [
+    { x: 108, y: 720, text: 'INT. LAB - NIGHT' },
+    { x: 266, y: 696, text: 'HOOT' },
+    { x: 266 + 90, y: 696, text: 'FRED' },
+    { x: 180, y: 684, text: 'Left words here.' },
+    { x: 340, y: 684, text: 'Right words here.' },
+    { x: 108, y: 660, text: 'They both stop talking.' },
+  ];
+  const p = parseShow(await extractRuns(buildPdf([{ runs }])));
+  assert.deepEqual(p.characters.map((c) => c.name).sort(), ['FRED', 'HOOT']);
+  assert.ok(p.scenes[0].dialogue_by_character.HOOT.includes('Left words'));
+  assert.ok(p.scenes[0].dialogue_by_character.FRED.includes('Right words'));
+  assert.deepEqual(p.rejects, []);
+});
+
+test('#71: same number on both margins bounds a prose scene; one margin never does', async () => {
+  const { buildPdf } = await import('./fixtures/pdfgen.js');
+  const page = (mid) => [
+    { x: 60, y: 720, text: '30' },
+    { x: 108, y: 720, text: 'INT. PAD - DAY' },
+    { x: 552, y: 720, text: '30' },
+    { x: 266, y: 696, text: 'MYRON' },
+    { x: 180, y: 684, text: 'Go for launch.' },
+    ...mid,
+    { x: 266, y: 612, text: 'WANDA' },
+    { x: 180, y: 600, text: 'Copy that.' },
+  ];
+  const both = await extractRuns(buildPdf([{ runs: page([
+    { x: 60, y: 648, text: '31' },
+    { x: 108, y: 648, text: 'The launch intercut continues apace.' },
+    { x: 552, y: 648, text: '31' },
+  ]) }]));
+  const pb = parseShow(both);
+  assert.deepEqual(pb.scenes.map((s) => [s.id, s.heading]), [
+    ['30', 'INT. PAD - DAY'],
+    ['31', 'SCENE 31'],
+  ]);
+  assert.deepEqual(pb.scenes[1].characters_speaking, ['WANDA']);
+
+  const one = await extractRuns(buildPdf([{ runs: page([
+    { x: 60, y: 648, text: '31' },
+    { x: 108, y: 648, text: 'The launch intercut continues apace.' },
+  ]) }]));
+  const po = parseShow(one);
+  assert.deepEqual(po.scenes.map((s) => s.id), ['30']);
+});
+
+test('#70: E/I. slugs bound scenes', async () => {
+  const { buildPdf } = await import('./fixtures/pdfgen.js');
+  const runs = [
+    { x: 108, y: 720, text: 'INT. LAB - NIGHT' },
+    { x: 266, y: 696, text: 'MYRON' },
+    { x: 180, y: 684, text: 'Inside.' },
+    { x: 108, y: 648, text: 'E/I. AIRLOCK - CONTINUOUS' },
+    { x: 266, y: 624, text: 'WANDA' },
+    { x: 180, y: 612, text: 'Crossing over.' },
+  ];
+  const p = parseShow(await extractRuns(buildPdf([{ runs }])));
+  assert.deepEqual(p.scenes.map((s) => s.heading), [
+    'INT. LAB - NIGHT',
+    'E/I. AIRLOCK - CONTINUOUS',
+  ]);
+});
+
+test('cold-open fence: an all-caps follow never fakes a cold open', async () => {
+  const { buildPdf } = await import('./fixtures/pdfgen.js');
+  const runs = [
+    { x: 266, y: 696, text: 'STANDING SETS' },
+    { x: 180, y: 684, text: 'LAUNCH CONTROL' },
+    { x: 108, y: 648, text: 'INT. LAB - NIGHT' },
+    { x: 266, y: 624, text: 'MYRON' },
+    { x: 180, y: 612, text: 'Control.' },
+  ];
+  const p = parseShow(await extractRuns(buildPdf([{ runs }])));
+  assert.deepEqual(p.scenes.map((s) => s.heading), ['INT. LAB - NIGHT']);
+  assert.deepEqual(p.characters.map((c) => c.name), ['MYRON']);
+});

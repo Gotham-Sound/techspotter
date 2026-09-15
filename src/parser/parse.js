@@ -71,13 +71,16 @@ export function parseShow(rawPages) {
   // Pre-scan (brief §3.1): any numbered heading anywhere puts the whole
   // document in numbered mode, where bare slugs are context, not
   // boundaries. No numbered headings at all = bare-slug mode.
-  const mode = headings.some((h) => h?.num) ? 'numbered' : 'bare-slug';
+  // Numbered-prose entries never vote on mode and never bound outside
+  // numbered mode (#71 ruling: the shape only exists in numbered drafts).
+  const mode = headings.some((h) => h?.num && !h.prose) ? 'numbered' : 'bare-slug';
 
   const bounds = [];
   flat.forEach((line, idx) => {
     const h = headings[idx];
     if (!h) return;
     if (mode === 'numbered' && !h.num) return;
+    if (h.prose && mode !== 'numbered') return;
     bounds.push({ idx, h, line });
   });
 
@@ -107,6 +110,10 @@ export function parseShow(rawPages) {
       if (bandOf(line.minX) !== 'cue') continue;
       const next = flat[i + 1];
       if (!next || next.sheet !== line.sheet || line.y - next.y > gap) continue;
+      // The follow must read as dialogue PROSE (contains a lowercase
+      // letter): all-caps list rows (a sets list, a cast page) never
+      // qualify (#68 delta, the cml sets-list phantom).
+      if (!/[a-z]/.test(next.text)) continue;
       const v = evaluateCue(line, next, { furniture: new Set() });
       if (!v?.accept) continue;
       bounds.unshift({
@@ -157,6 +164,7 @@ export function parseShow(rawPages) {
     const textLines = [bound.h.heading];
     const actionLines = [];
     let openSpeaker = null;
+    let openDual = null; // {left, right, boundary} while a dual block runs
     const record = (line, band, extra = {}) => {
       scene.lines.push({
         text: line.text,
@@ -178,6 +186,43 @@ export function parseShow(rawPages) {
       const line = flat[i];
       textLines.push(line.text);
       const verdict = evaluateCue(line, flat[i + 1], { furniture });
+
+      // Dual-dialogue block (#69 ruling, split-don't-rail): both halves
+      // seat; the rows beneath attribute by the column boundary, each
+      // row's SEGMENTS parted at it (same-baseline columns cluster into
+      // one line here, the reference's own finding); a spanning segment
+      // or any non-dialogue line ends the block.
+      if (verdict?.dual) {
+        const d = verdict.dual;
+        openSpeaker = null;
+        openDual = { ...d };
+        for (const half of [d.left, d.right]) {
+          if (!scene.characters_speaking.includes(half.name)) {
+            scene.characters_speaking.push(half.name);
+          }
+          scene.dialogue_by_character[half.name] ??= '';
+        }
+        record(line, 'cue', { cue: `${d.left.name} || ${d.right.name}` });
+        continue;
+      }
+      if (openDual && !verdict) {
+        const band = bandOf(line.minX);
+        const spanning = line.segments.some(
+          (s) => s.x0 < openDual.boundary && s.x1 > openDual.boundary,
+        );
+        if ((band === 'dialogue' || band === 'paren') && !spanning) {
+          for (const s of line.segments) {
+            const half = s.x0 >= openDual.boundary ? openDual.right : openDual.left;
+            scene.dialogue_by_character[half.name] +=
+              (scene.dialogue_by_character[half.name] ? '\n' : '') + s.text;
+          }
+          record(line, band, { speaker: `${openDual.left.name} || ${openDual.right.name}` });
+          continue;
+        }
+        openDual = null;
+      } else if (verdict) {
+        openDual = null;
+      }
 
       if (verdict?.accept) {
         openSpeaker = verdict.accept.name;

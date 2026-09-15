@@ -20,13 +20,13 @@ import {
   foldCandidates,
 } from '../src/parser/policy.js';
 import { stripBurnIns, cell, repeatThreshold } from '../src/parser/burnin.js';
-import { evaluateCue, normCue, cueCharsetOk } from '../src/parser/cues.js';
+import { evaluateCue, normCue, cueCharsetOk, splitDualHeader } from '../src/parser/cues.js';
 import { BANDS } from '../src/parser/constants.js';
 
-// The ack number from the EARLY-absorption work order (#68; corpus
-// 2026.09.15 at the ruled stack head, commit 78f1031).
+// The ack number from #68 DELTA 2 (corpus 2026.09.15b at stack head
+// feat/issue-69-dual-split).
 const MANIFEST_ACK =
-  '040492cef076762b5eccaa4effb69c70578ea47a8841bb7b62be8ce84bfefc80';
+  '6722219149903a5b66750caa9f5f2f10232c87dab309ee2a9cb6cf2132c522e8';
 
 const dir = new URL('./conformance/', import.meta.url);
 const raw = (p) => readFileSync(new URL(p, dir));
@@ -123,6 +123,14 @@ test('offers.json: fold_candidates(names), channel tier only', () => {
   assert.equal(cases.length, 2);
   for (const c of cases) {
     assert.deepEqual(foldCandidates(c.names), c.expect);
+  }
+});
+
+test('dual.json: split_dual_header -> [left, right, boundary] or null', () => {
+  const { cases } = vectors('dual');
+  assert.equal(cases.length, 6);
+  for (const c of cases) {
+    assert.deepEqual(splitDualHeader(c.words), c.expect, JSON.stringify(c.words));
   }
 });
 

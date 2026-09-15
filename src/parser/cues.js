@@ -41,7 +41,71 @@ export const normCue = (raw) => normCueDetail(raw).name;
 
 const REJECT_TRAILING = POLICY.cue_reject_trailing ?? [];
 
+// The full text-level cue gate on a NORMALIZED cue (the kernel failGate
+// shares): furniture, ruled trailing glyphs, charset with the admitted
+// shapes, stop words, single glyph. Geometry (band, wide) stays with the
+// line-level callers.
+function cueTextOk(cue) {
+  if (!cue || !/[A-Z]/.test(cue)) return false;
+  if (isFurniture(cue)) return false;
+  if (REJECT_TRAILING.some((g) => cue.endsWith(g))) return false;
+  const base = qualifiedBase(cue);
+  if (!cueCharsetOk(base)) return false;
+  if (base.split(/\s+/).some((t) => CUE_STOP_WORDS.has(t))) return false;
+  if (base.replace(/[\s.]/g, '').length === 1) return false;
+  return true;
+}
+
+// split_dual_header (hub corpus contract, vectors/dual.json; #69 ruling,
+// split-don't-rail): words = [text, x0, x1][] in x order. Returns
+// [left, right, boundary_x] when the row parts at exactly ONE gap wider
+// than dual_dialogue.min_gap_pt into two groups that EACH pass the full
+// cue gate; else null (a sets-list row stays a wide reject). Boundary is
+// the midpoint of the two groups' x starts, per the filed geometry. Our
+// segments are the natural word groups: SEG_GAP (14) sits far below
+// min_gap_pt (40), so intra-segment gaps can never count as the split.
+export function splitDualHeader(words) {
+  const minGap = POLICY.dual_dialogue?.min_gap_pt ?? 40;
+  if (words.length < 2) return null;
+  const wide = [];
+  for (let k = 0; k < words.length - 1; k++) {
+    if (words[k + 1][1] - words[k][2] > minGap) wide.push(k);
+  }
+  if (wide.length !== 1) return null;
+  const k = wide[0];
+  const left = words.slice(0, k + 1).map((w) => w[0]).join(' ').trim();
+  const right = words.slice(k + 1).map((w) => w[0]).join(' ').trim();
+  for (const half of [left, right]) {
+    const cue = normCue(half);
+    if (!cueTextOk(cue)) return null;
+  }
+  return [left, right, (words[0][1] + words[k + 1][1]) / 2];
+}
+
 export function evaluateCue(line, nextLine, ctx) {
+  // Dual-dialogue headers run BEFORE the candidacy fork (#69 ruling,
+  // reference finding: the row's x0 floats with column width, so narrow
+  // pairs die at position and wide ones at the wide gate if this runs
+  // later). Both halves must gate and dialogue must follow.
+  if (line.segments.length === 2 && line.text === line.text.toUpperCase()) {
+    const split = splitDualHeader(
+      line.segments.map((s) => [s.text, s.x0, s.x1]),
+    );
+    if (split) {
+      const followed =
+        nextLine && ['dialogue', 'paren'].includes(bandOf(nextLine.minX));
+      if (followed) {
+        const [l, r, boundary] = split;
+        return {
+          dual: {
+            left: normCueDetail(l),
+            right: normCueDetail(r),
+            boundary,
+          },
+        };
+      }
+    }
+  }
   if (bandOf(line.minX) !== 'cue') return null;
   // Merged-run revision stars ("TONY *") strip before any gate.
   const raw = line.text.trim().replace(/^\*+\s*/, '').replace(/\s*\*+$/, '');
