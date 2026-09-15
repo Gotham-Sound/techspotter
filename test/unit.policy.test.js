@@ -1,5 +1,5 @@
-// Pins the scriptparse policy mirror (policy_version 2026.09.14,
-// absorbed per hub issue #60; prior 2026.07.27b per #33) so it cannot drift silently: the ruled
+// Pins the scriptparse policy mirror (policy_version 2026.09.15,
+// early absorption per hub issue #68; prior #60, #33) so it cannot drift silently: the ruled
 // contents are asserted as literals here, independent of the mirror file.
 // A failure here means the mirror was edited locally — which is never a
 // fix; divergences go to the hub as federation motions.
@@ -14,7 +14,7 @@ import {
 } from '../src/parser/policy.js';
 
 test('mirror carries the absorbed policy version', () => {
-  assert.equal(POLICY.policy_version, '2026.09.14');
+  assert.equal(POLICY.policy_version, '2026.09.15');
 });
 
 test('channel_kinds and default: the issue #11 ruling, exactly', () => {

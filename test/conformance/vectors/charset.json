@@ -1,0 +1,81 @@
+{
+ "cases": [
+  {
+   "cue": "MYRON",
+   "expect": true
+  },
+  {
+   "cue": "ANNA-MARIE",
+   "expect": true
+  },
+  {
+   "cue": "O'BRIEN",
+   "expect": true
+  },
+  {
+   "cue": "DR. SLOANE",
+   "expect": true
+  },
+  {
+   "cue": "MERC #1",
+   "expect": true
+  },
+  {
+   "cue": "AGENT #1",
+   "expect": true
+  },
+  {
+   "cue": "HENCHMAN 3",
+   "expect": true
+  },
+  {
+   "cue": "SALLY, JR",
+   "expect": true
+  },
+  {
+   "cue": "SALLY, SR",
+   "expect": true
+  },
+  {
+   "cue": "SALLY, III",
+   "expect": true
+  },
+  {
+   "cue": "SALLY, JR.",
+   "expect": true
+  },
+  {
+   "cue": "#1",
+   "expect": false
+  },
+  {
+   "cue": "MERC # 1",
+   "expect": false
+  },
+  {
+   "cue": "MERC #1 EXTRA",
+   "expect": false
+  },
+  {
+   "cue": "MYRON, WANDA",
+   "expect": false
+  },
+  {
+   "cue": "SALLY, V",
+   "expect": false
+  },
+  {
+   "cue": "SALLY,",
+   "expect": false
+  },
+  {
+   "cue": "GIRLS/CASSIDY",
+   "expect": false
+  },
+  {
+   "cue": "MYRON & WANDA",
+   "expect": false
+  }
+ ],
+ "contract": "cue_charset_ok(cue) -> bool: strict class [A-Z0-9 .'-] over the cue with the two ruled trailing shapes removed (numbered_part_marker+digits; comma+name_suffixes token, dot-insensitive); the remainder must be non-empty"
+}

@@ -20,12 +20,13 @@ import {
   foldCandidates,
 } from '../src/parser/policy.js';
 import { stripBurnIns, cell, repeatThreshold } from '../src/parser/burnin.js';
-import { evaluateCue, normCue } from '../src/parser/cues.js';
+import { evaluateCue, normCue, cueCharsetOk } from '../src/parser/cues.js';
 import { BANDS } from '../src/parser/constants.js';
 
-// The ack number from the hub's queue work order (#60; corpus 2026.09.14).
+// The ack number from the EARLY-absorption work order (#68; corpus
+// 2026.09.15 at the ruled stack head, commit 78f1031).
 const MANIFEST_ACK =
-  '307dc50a1a7012b1c76dcea901adb7ce7877507ebd3c3103db238f166bee743a';
+  '040492cef076762b5eccaa4effb69c70578ea47a8841bb7b62be8ce84bfefc80';
 
 const dir = new URL('./conformance/', import.meta.url);
 const raw = (p) => readFileSync(new URL(p, dir));
@@ -43,7 +44,7 @@ test('corpus manifest matches the ack number and binds our policy pin', () => {
 
 test('fold.json: fold(cue) -> {base, channel, tier, kind}', () => {
   const { cases } = vectors('fold');
-  assert.equal(cases.length, 49);
+  assert.equal(cases.length, 51);
   for (const c of cases) {
     const f = foldName(c.cue);
     assert.deepEqual(
@@ -83,9 +84,17 @@ test('cue_gate.json: cue_semantic_ok(cue) -> bool', () => {
   }
 });
 
+test('charset.json: cue_charset_ok(cue) -> bool (ruled shape admissions)', () => {
+  const { cases } = vectors('charset');
+  assert.equal(cases.length, 19);
+  for (const c of cases) {
+    assert.equal(cueCharsetOk(c.cue), c.expect, c.cue);
+  }
+});
+
 test('normalize.json: norm_cue(raw) -> canonical cue string', () => {
   const { cases } = vectors('normalize');
-  assert.equal(cases.length, 13);
+  assert.equal(cases.length, 15);
   for (const c of cases) {
     assert.equal(normCue(c.raw), c.expect, JSON.stringify(c.raw));
   }
@@ -93,7 +102,7 @@ test('normalize.json: norm_cue(raw) -> canonical cue string', () => {
 
 test('part_of.json: aliases win; blank canonical keeps separate', () => {
   const { cases } = vectors('part_of');
-  assert.equal(cases.length, 9);
+  assert.equal(cases.length, 11);
   for (const c of cases) {
     assert.equal(partOf(c.cue, c.aliases), c.expect, c.cue);
   }

@@ -440,6 +440,24 @@
     "kind": null,
     "tier": "standard"
    }
+  },
+  {
+   "cue": "SALLY, JR.",
+   "expect": {
+    "base": "SALLY, JR.",
+    "channel": null,
+    "kind": null,
+    "tier": null
+   }
+  },
+  {
+   "cue": "SALLY, SR.",
+   "expect": {
+    "base": "SALLY, SR.",
+    "channel": null,
+    "kind": null,
+    "tier": null
+   }
   }
  ],
  "contract": "fold(cue) -> {base, channel, tier, kind}"

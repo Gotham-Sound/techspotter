@@ -52,35 +52,28 @@ test('normalize seats colon and doubled-word cues under the plain name', async (
   assert.deepEqual(p.rejects, []);
 });
 
-// PRE-#63 PIN (hub motion #63/#52, ruling pending): the generational-
-// suffix class as it stands under policy 2026.09.14, verified in the
-// field 2026-09-14. When the name_suffixes bump absorbs, this pin MUST
-// change with it: the comma form seats, suffixed names never fold or
-// offer against the bare base (gate the surname-prefix offer family),
-// and this comment goes away.
-test('pre-#63 pin: comma suffix chips, no-comma seats, base draws an offer', async () => {
-  const p = await parse(['SALLY JR.', 'SALLY, SR.', 'SALLY']);
+// #63/#52 RULED (Peter, 2026-09-14; absorbed early per #68): the comma
+// is admissible in exactly the terminal NAME, <suffix> shape, suffixed
+// names are distinct performers, and they never fold OR offer against
+// the bare base (the offer layer named in the ruling per this bench's
+// report). Numbered parts (MERC #1) seat under the same charset ruling.
+test('#63 ruling: suffix forms seat distinct; no offer against the base', async () => {
+  const p = await parse(['SALLY JR.', 'SALLY, SR.', 'SALLY', 'MERC #1']);
   assert.deepEqual(
     p.characters.map((c) => c.name).sort(),
-    ['MYRON', 'SALLY', 'SALLY JR'],
+    ['MERC #1', 'MYRON', 'SALLY', 'SALLY JR', 'SALLY, SR'],
   );
-  assert.deepEqual(
-    p.rejects.map((r) => [r.name, r.reason]),
-    [['SALLY, SR', "charset ','"]],
-  );
-  assert.deepEqual(
-    p.merge_offers.map((o) => [o.variant, o.canonical]),
-    [['SALLY JR', 'SALLY']],
-  );
+  assert.deepEqual(p.rejects, []);
+  assert.deepEqual(p.merge_offers, []);
 });
 
-// PRE-#66 PIN (hub motion #66, ruling pending): content before the
-// first slugline is invisible to the parse: the cue does not seat, does
-// not chip, and its dialogue reaches no scene. Silent loss, both
-// engines, field-hit by the SALLY draft's cold open. When the #66
-// ruling absorbs, this pin flips: dialogue-bearing front matter becomes
-// an implicit leading scene and/or its cue-shaped lines chip loudly.
-test('pre-#66 pin: a cold-open cue before the first slug is silently lost', async () => {
+// #66 RULED (Peter, 2026-09-15; absorbed early per #68): a seatable cue
+// before the first heading opens an implicit COLD OPEN scene. This
+// fixture is bare-slug mode, so the cold open takes ordinal 1 and the
+// real slug shifts to 2 (the blessed renumbering); the dialogue seats.
+// The negative half: a floating title page (loose vertical gaps) never
+// fakes a cold open.
+test('#66 ruling: a cold-open cue seats in an implicit leading scene', async () => {
   const { buildPdf } = await import('./fixtures/pdfgen.js');
   const runs = [
     { x: 108, y: 720, text: 'Over black, a voice.' },
@@ -91,7 +84,27 @@ test('pre-#66 pin: a cold-open cue before the first slug is silently lost', asyn
     { x: 180, y: 612, text: 'Control.' },
   ];
   const p = parseShow(await extractRuns(buildPdf([{ runs }])));
-  assert.deepEqual(p.characters.map((c) => c.name), ['MYRON']);
+  assert.deepEqual(p.scenes.map((s) => [s.id, s.heading]), [
+    ['1', 'COLD OPEN'],
+    ['2', 'INT. LAB - NIGHT'],
+  ]);
+  assert.deepEqual(p.characters.map((c) => c.name).sort(), ['MYRON', 'SALLY SR']);
+  assert.deepEqual(p.scenes[0].characters_speaking, ['SALLY SR']);
+  assert.ok(p.scenes[0].dialogue_by_character['SALLY SR'].includes('before the first slug'));
   assert.deepEqual(p.rejects, []);
-  assert.equal(p.scenes.length, 1);
+});
+
+test('#66 negative: a floating title page never fakes a cold open', async () => {
+  const { buildPdf } = await import('./fixtures/pdfgen.js');
+  const runs = [
+    { x: 266, y: 600, text: 'HENHOUSE PILOT' },
+    { x: 180, y: 540, text: 'Written by' },
+    { x: 180, y: 500, text: 'A. Writer' },
+    { x: 108, y: 448, text: 'INT. COOP - DAY' },
+    { x: 266, y: 424, text: 'MYRON' },
+    { x: 180, y: 412, text: 'Control.' },
+  ];
+  const p = parseShow(await extractRuns(buildPdf([{ runs }])));
+  assert.deepEqual(p.scenes.map((s) => s.heading), ['INT. COOP - DAY']);
+  assert.deepEqual(p.characters.map((c) => c.name), ['MYRON']);
 });

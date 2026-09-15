@@ -1,7 +1,13 @@
 // Character identity (brief §3.3): variants are distinct performers by
 // default; same-person guesses are offer-only merge suggestions.
 
-import { foldName } from './policy.js';
+import { POLICY, foldName } from './policy.js';
+
+// Suffixed names never fold OR offer (#63 ruling): JR/SR are the
+// generational analog of the YOUNG VALERIE leading-qualifier doctrine,
+// so extras made entirely of name_suffixes tokens (dot-insensitive)
+// never produce a surname-prefix offer against the bare base.
+const NAME_SUFFIXES = new Set(POLICY.name_suffixes ?? []);
 
 export function deriveCharacters(scenes) {
   const map = new Map();
@@ -40,6 +46,7 @@ export function findMergeOffers(characters) {
       if (!st.every((t, i) => lt[i] === t)) continue;
       const extras = lt.slice(st.length);
       if (!extras.every((t) => /^[A-Z][A-Z'.\-]*$/.test(t))) continue;
+      if (extras.every((t) => NAME_SUFFIXES.has(t.replace(/\./g, '')))) continue;
       const [canonical, variant] =
         shorter.scene_count >= longer.scene_count
           ? [shorter, longer]

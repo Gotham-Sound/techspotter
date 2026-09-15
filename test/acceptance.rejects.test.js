@@ -50,19 +50,16 @@ test('gate rejects surface with reasons; matrix stays clean', async () => {
   const parsed = parseShow(await extractRuns(fixture()));
 
   // Epithet characters with prepositions are real (Peter's ruling): MAN IN
-  // BLACK is a column, not a chip.
+  // BLACK is a column, not a chip. Numbered parts seat since the #52
+  // charset ruling (trailing marker+digits is an admitted shape).
   assert.deepEqual(
     parsed.characters.map((c) => c.name).sort(),
-    ['MAN IN BLACK', 'VICTOR'],
+    ['MAN IN BLACK', 'MERC #1', 'VICTOR'],
   );
 
   const byName = Object.fromEntries(parsed.rejects.map((r) => [r.name, r]));
   assert.ok(!('MAN IN BLACK' in byName));
-  assert.equal(byName['MERC #1'].reason, "charset '#'");
-  assert.deepEqual(
-    byName['MERC #1'].occurrences.map((o) => o.scene),
-    ['1'],
-  );
+  assert.ok(!('MERC #1' in byName));
   assert.equal(byName['ELEANOR FROM HR'].reason, "word 'FROM'");
   assert.equal(byName['GIRLS/CASSIDY'].reason, "charset '/'");
   assert.equal(byName['LOLA  DENNY'].reason, 'wide (dual dialogue?)');
@@ -82,12 +79,6 @@ test('gate rejects surface with reasons; matrix stays clean', async () => {
 
 test('one-click add: promoted reject joins the matrix with its scenes', async () => {
   const parsed = parseShow(await extractRuns(fixture()));
-
-  promoteReject(parsed, 'MERC #1');
-  const merc = parsed.characters.find((c) => c.name === 'MERC #1');
-  assert.ok(merc);
-  assert.deepEqual(merc.scenes, ['1']);
-  assert.ok(!parsed.rejects.some((r) => r.name === 'MERC #1'));
 
   promoteReject(parsed, 'ELEANOR FROM HR');
   const eleanor = parsed.characters.find((c) => c.name === 'ELEANOR FROM HR');

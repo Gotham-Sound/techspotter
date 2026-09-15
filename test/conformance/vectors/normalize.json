@@ -51,6 +51,14 @@
   {
    "expect": "MYRON",
    "raw": "myron (o.s.)"
+  },
+  {
+   "expect": "SALLY, JR",
+   "raw": "SALLY, JR."
+  },
+  {
+   "expect": "MERC #1",
+   "raw": "MERC #1 (V.O.)"
   }
  ],
  "contract": "norm_cue(raw) -> canonical cue string (empty = not a cue; gate vectors consume the canonical form)"

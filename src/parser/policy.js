@@ -1,12 +1,12 @@
-// MIRROR of scriptparse policy.json, policy_version 2026.09.14
-// (absorbed per hub issue #60; prior 2026.07.27b per issue #33). The DATA object below
+// MIRROR of scriptparse policy.json, policy_version 2026.09.15
+// (EARLY absorption per hub issue #68, Peter direction; prior #60, #33). The DATA object below
 // is the hub file verbatim, notes included: never edit it locally. A
 // divergence is a federation motion in scriptparse, not a local fix.
 // The functions after it are the JS interpreter, mirroring policy.py
 // (the Python reference interpreter) matching semantics.
 
 export const POLICY = Object.freeze({
-  "policy_version": "2026.09.14",
+  "policy_version": "2026.09.15",
   "_comment": "The cross-language fold/gate policy (scriptparse PR #2, frozen 2026-07-26; issue #11 rulings executed 2026-07-27). This file IS the contract: declarative lists, maps, and enumerated rule types only: a JS interpreter must be able to mirror it exactly. No regexes, no code. policy.py is the Python reference interpreter.",
   "cue_stop_words": [
     "AND",
@@ -20,6 +20,20 @@ export const POLICY = Object.freeze({
     "-"
   ],
   "_cue_reject_trailing_note": "RULED (Peter, 2026-08-01; issue #42, the corpus's first cross-engine catch): a cue ending in any of these glyphs is gate-refused, silently (a true negative, grouped with transitions: the rule's purpose is suppressing transition artifacts like 'CUT TO -' that dodge the exact-string list via the dash; a plausible name such as 'MYRON-' is collateral). Shared data per law 8 so both engines read one rule. Reopens as refuse-and-surface if a real draft ever shows a legitimate trailing-hyphen character cue.",
+  "name_suffixes": [
+    "JR",
+    "SR",
+    "II",
+    "III",
+    "IV"
+  ],
+  "_name_suffixes_note": "RULED (Peter, 2026-09-14; issue #63, with #52 as one charset-class ruling): generational suffixes. Rule-type semantics: a comma is charset-admissible ONLY in the terminal construction 'NAME, <suffix>' where the token after the comma, matched dot-insensitively, is in this list; every other comma stays railed (blanket admission would seat appositive and dual-cue junk). Identity: suffixed names are DISTINCT PERFORMERS, never fold: not with each other and not with the bare base (the qualifier_words doctrine, suffix analog: SALLY, JR. and SALLY, SR. are two bodies). V is deliberately excluded (collision-prone, no evidence); it reopens on a real-draft fixture.",
+  "cold_open": {
+    "scene_id_numbered": "0",
+    "scene_heading": "COLD OPEN",
+    "follow_max_gap_pt": 14
+  },
+  "_cold_open_note": "RULED (Peter, 2026-09-15; issue #66, completing the #63 field case). Rule-type semantics: a pre-heading region containing a SEATABLE cue (candidate + cue-band position + dialogue-band follow, the same three tests as in-scene seating, PLUS proximity: the immediately following line must start within follow_max_gap_pt of the cue line's bottom, about one dialogue line-advance; real dialogue sits tight under its cue while title-page blocks float apart, which is what keeps a centered title page from faking a cold open) becomes an implicit leading scene with this heading; in numbered drafts it takes scene_id_numbered (nothing renumbers), in bare-slug drafts it takes the next ordinal and every subsequent ordinal shifts (blessed by name, the mb101 pattern). Inert front matter (title page, cast page: no seatable cue) stays front matter, and cue-shaped near-misses there always run the reject scanner (never-silent, the #37 doctrine). Both engines emit these exact id/heading strings so the interchange agrees.",
   "standard_tags": [
     "V.O.",
     "O.S.",
@@ -117,7 +131,7 @@ export const POLICY = Object.freeze({
   ],
   "_qualifier_words_note": "Tier 3: age/stage doubles are DISTINCT PERFORMERS — never fold, never offer (YOUNG VALERIE doctrine). Consumed by offer-builders; fold() itself never sees a bare qualifier name as a variant.",
   "numbered_part_marker": "#",
-  "_numbered_part_marker_note": "Names carrying #N (MERC #1) are distinct numbered parts and never fold (gate-railed; the charset gate also refuses them as cues — they surface via the reject rail).",
+  "_numbered_part_marker_note": "Names carrying #N (MERC #1) are distinct numbered parts and never fold. AMENDED (Peter, 2026-09-14; issue #52 option 2, ruled with #63): the marker is now charset-ADMISSIBLE in exactly its own shape, a trailing '<marker><digits>' group, so numbered parts SEAT as distinct never-fold characters instead of surfacing as reject chips (the 2026-07-08 live casualty and the typography lottery: HENCHMAN 3 seated while AGENT #1 railed). A bare or mid-name marker stays railed; one glyph means one thing across the policy.",
   "furniture_numbered_words": [
     "EPISODE",
     "ACT",

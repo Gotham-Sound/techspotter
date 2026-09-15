@@ -67,6 +67,32 @@ export function evaluateCue(line, nextLine, ctx) {
   return { accept: { name, qualified } };
 }
 
+// cue_charset_ok (hub corpus contract, vectors/charset.json; #52/#63
+// rulings as policy data): the strict class [A-Z0-9 .'-] judges the cue
+// with the two RULED trailing shapes removed first: <marker><digits>
+// (MERC #1) and comma + name_suffixes token, dot-insensitive
+// (SALLY, JR). The remainder must be non-empty, so a bare numbered
+// group, a mid-name marker, or a non-suffix comma stays railed.
+const SUFFIX_TAIL_RE = /,\s*([A-Z][A-Z.]*)$/;
+const NAME_SUFFIXES = new Set(POLICY.name_suffixes ?? []);
+const MARKER_TAIL_RE = new RegExp(
+  `${(POLICY.numbered_part_marker ?? '#').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\d+$`,
+);
+
+function stripAdmittedShapes(cue) {
+  let t = cue;
+  const m = t.match(SUFFIX_TAIL_RE);
+  if (m && NAME_SUFFIXES.has(m[1].replace(/\./g, ''))) {
+    t = t.slice(0, m.index).trimEnd();
+  }
+  return t.replace(MARKER_TAIL_RE, '').trimEnd();
+}
+
+export function cueCharsetOk(cue) {
+  const rest = stripAdmittedShapes(cue);
+  return rest.length > 0 && ![...rest].some((c) => !/[A-Z0-9 .'\-]/.test(c));
+}
+
 function failGate(line, name) {
   if (line.segments.length >= 2) {
     return {
@@ -76,8 +102,9 @@ function failGate(line, name) {
     };
   }
   const base = qualifiedBase(name);
-  const bad = [...base].find((c) => !/[A-Z0-9 .'\-]/.test(c));
-  if (bad) {
+  if (!cueCharsetOk(base)) {
+    const rest = stripAdmittedShapes(base);
+    const bad = [...(rest || base)].find((c) => !/[A-Z0-9 .'\-]/.test(c)) ?? base[0];
     return { name, code: 'charset', reason: `charset '${bad}'` };
   }
   const stop = base.split(/\s+/).find((t) => CUE_STOP_WORDS.has(t));

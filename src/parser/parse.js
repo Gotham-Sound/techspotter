@@ -9,6 +9,7 @@ import { evaluateCue } from './cues.js';
 import { deriveCharacters, findMergeOffers } from './characters.js';
 import { derivePresence } from './presence.js';
 import { stripBurnIns } from './burnin.js';
+import { POLICY } from './policy.js';
 
 export class ParseError extends Error {
   constructor(code, message) {
@@ -85,6 +86,39 @@ export function parseShow(rawPages) {
       'zero-scenes',
       `No scenes found. TechSpotter looked for scene headings (INT. / EXT. slugs) across ${pages.length} page(s) and found none. Is this a screenplay PDF?`,
     );
+  }
+
+  // Cold open (policy cold_open; hub #66 ruling, Peter 2026-09-15): a
+  // SEATABLE cue before the first heading opens an implicit leading
+  // scene instead of vanishing into front matter (the silent-loss class:
+  // no seat, no chip, no text). Seatable = the same tests the in-scene
+  // path applies (cue band + gates + dialogue-band follow) plus the
+  // policy proximity: the next line must sit within follow_max_gap_pt
+  // of one line-advance below the cue, on the same sheet, which is what
+  // keeps a centered title page's floating blocks from faking one.
+  // Numbered drafts take the synthetic id (nothing renumbers); bare-slug
+  // drafts take the next ordinal and every later ordinal shifts, the
+  // consequence blessed by name in the ruling (the mb101 pattern).
+  const co = POLICY.cold_open;
+  if (co) {
+    const gap = 12 + (co.follow_max_gap_pt ?? 14);
+    for (let i = 0; i < bounds[0].idx; i++) {
+      const line = flat[i];
+      if (bandOf(line.minX) !== 'cue') continue;
+      const next = flat[i + 1];
+      if (!next || next.sheet !== line.sheet || line.y - next.y > gap) continue;
+      const v = evaluateCue(line, next, { furniture: new Set() });
+      if (!v?.accept) continue;
+      bounds.unshift({
+        idx: i - 1,
+        h: {
+          num: mode === 'numbered' ? String(co.scene_id_numbered) : null,
+          heading: co.scene_heading,
+        },
+        line: { ...line, text: co.scene_heading },
+      });
+      break;
+    }
   }
 
   // Front matter (title page etc.) is furniture: any of its lines seen
@@ -197,6 +231,27 @@ export function parseShow(rawPages) {
     scene.text = textLines.join('\n');
     scenes.push(scene);
   });
+
+  // #66 disposition 2: the reject scanner runs over front matter too, so
+  // a cue-shaped near-miss in a cold open CHIPS instead of vanishing (a
+  // performer must never be discoverable only by a human noticing an
+  // absence). Empty furniture ctx on purpose: these lines seeded the
+  // furniture set themselves. Chips attribute to the first scene.
+  for (let i = 0; i < bounds[0].idx; i++) {
+    const line = flat[i];
+    const v = evaluateCue(line, flat[i + 1], { furniture: new Set() });
+    if (!v?.reject) continue;
+    const r = v.reject;
+    const key = `${r.name}|${r.reason}`;
+    if (!rejectMap.has(key)) {
+      rejectMap.set(key, { name: r.name, code: r.code, reason: r.reason, occurrences: [] });
+    }
+    rejectMap.get(key).occurrences.push({
+      scene: scenes[0].id,
+      page: line.page,
+      anchor: { page: line.sheet, bbox: [line.minX, line.y - 3, line.maxX, line.y + 9] },
+    });
+  }
 
   const characters = deriveCharacters(scenes);
   return derivePresence({
