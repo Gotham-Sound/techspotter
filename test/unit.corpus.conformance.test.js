@@ -23,10 +23,9 @@ import { stripBurnIns, cell, repeatThreshold } from '../src/parser/burnin.js';
 import { evaluateCue, normCue, cueCharsetOk, splitDualHeader } from '../src/parser/cues.js';
 import { BANDS } from '../src/parser/constants.js';
 
-// The ack number at MERGED main (the gated caboose; corpus 2026.09.15b,
-// 149 cases, re-cut additions included).
+// The ack number for corpus 2026.09.17 (#92; the #79 canonicalization).
 const MANIFEST_ACK =
-  'cc1b120f645333dd9c97e0253807e0677b7a3b638b0316104bd8a8275e320b2b';
+  '1335558d801a528a6fc8a98e7ab5f2afbe09cdb9ff3ddf1aebc4cf10f835299e';
 
 const dir = new URL('./conformance/', import.meta.url);
 const raw = (p) => readFileSync(new URL(p, dir));

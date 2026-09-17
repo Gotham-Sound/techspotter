@@ -1,5 +1,5 @@
 {
- "corpus_version": "2026.09.15b",
+ "corpus_version": "2026.09.17",
  "files": [
   {
    "cases": 20,
@@ -24,7 +24,7 @@
   {
    "cases": 51,
    "path": "vectors/fold.json",
-   "sha256": "f64d44e97390895a49a9a5f67399bc3e4fd550cbdc66c3a701d9faf5d78db8cc"
+   "sha256": "e4aeef8cc5c82180aff04578bb107a0ecf68032df594d0cce3cbfea381202548"
   },
   {
    "cases": 15,
@@ -39,7 +39,7 @@
   {
    "cases": 11,
    "path": "vectors/part_of.json",
-   "sha256": "5bbc3c0e40fc443263d10963902e435d926f5b8bf1968978e8e25271f3d7127e"
+   "sha256": "bd6eb139fba9e2f7ad33d8eedb5647bd54bc129762c807cae4e0de5b21aea093"
   },
   {
    "cases": 2,

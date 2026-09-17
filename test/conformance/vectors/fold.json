@@ -444,7 +444,7 @@
   {
    "cue": "SALLY, JR.",
    "expect": {
-    "base": "SALLY, JR.",
+    "base": "SALLY, JR",
     "channel": null,
     "kind": null,
     "tier": null
@@ -453,7 +453,7 @@
   {
    "cue": "SALLY, SR.",
    "expect": {
-    "base": "SALLY, SR.",
+    "base": "SALLY, SR",
     "channel": null,
     "kind": null,
     "tier": null

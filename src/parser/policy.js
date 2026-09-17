@@ -230,7 +230,15 @@ function kindOf(channel) {
 // tier: 'standard' | 'channel' | null. Unknown parentheticals stop the
 // fold (conservative by design); numbered parts (MERC #1) never fold.
 export function foldName(printedName) {
-  const name = (printedName ?? '').trim().replace(/\s+/g, ' ').toUpperCase();
+  // Trailing-punctuation canonicalization (#79 ruling, corpus 2026.09.17):
+  // the derivation strips trailing [.:] exactly as seating does, so a
+  // printed "SALLY, JR." and its seated form "SALLY, JR" are one part.
+  const name = (printedName ?? '')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toUpperCase()
+    .replace(/[.:]+$/, '')
+    .trim();
   const identity = { base: name, channel: null, tier: null, kind: null };
   if (!name) return identity;
 
@@ -300,10 +308,18 @@ function escapeRe(s) {
  * vectors/parts.json, vectors/offers.json). */
 
 export function partOf(cue, aliases = null) {
-  if (aliases && Object.prototype.hasOwnProperty.call(aliases, cue)) {
-    return aliases[cue] || cue;
+  // Canonicalize BEFORE the alias lookup (#79): alias keys are
+  // seated-form names, which never carry the trailing dot.
+  const name = (cue ?? '')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toUpperCase()
+    .replace(/[.:]+$/, '')
+    .trim();
+  if (aliases && Object.prototype.hasOwnProperty.call(aliases, name)) {
+    return aliases[name] || name;
   }
-  return foldName(cue).base;
+  return foldName(name).base;
 }
 
 export function parts(parse, aliases = null) {

@@ -52,12 +52,12 @@
   {
    "aliases": null,
    "cue": "SALLY, JR.",
-   "expect": "SALLY, JR."
+   "expect": "SALLY, JR"
   },
   {
    "aliases": null,
    "cue": "SALLY, SR.",
-   "expect": "SALLY, SR."
+   "expect": "SALLY, SR"
   }
  ],
  "contract": "part_of(cue, aliases) -> part_id (aliases: raw->canonical; blank canonical = keep separate)"
