@@ -65,6 +65,9 @@ export function buildSceneline(parsed, spot, opts = {}) {
       cast_aliases: structuredClone(parsed.cast_aliases ?? {}),
       scenes,
       review_dismissed: structuredClone(parsed.review_dismissed ?? []),
+      ...(parsed.unclassified_rows?.length
+        ? { unclassified_rows: structuredClone(parsed.unclassified_rows) }
+        : {}),
       burn_ins: (parsed.burn_ins ?? []).map((b) => ({
         text: b.text,
         signal: b.signal,
@@ -126,6 +129,7 @@ export function parseSceneline(text) {
     mode: 'imported',
     scenes,
     characters: (show.characters ?? []).map((n) => ({ name: n, scenes: [], scene_count: 0 })),
+    unclassified_rows: structuredClone(show.unclassified_rows ?? []),
     rejects: structuredClone(xt.rejects ?? []),
     merge_offers: [],
     dismissed_offers: structuredClone(xt.dismissed_offers ?? []),

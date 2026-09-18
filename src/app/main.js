@@ -41,7 +41,7 @@ function showError(msg, e) {
   if (frames) {
     const det = document.createElement('span');
     det.className = 'err-det';
-    det.textContent = `[b0915c: ${frames}]`;
+    det.textContent = `[b0918a: ${frames}]`;
     bar.append(det);
   }
   bar.hidden = false;

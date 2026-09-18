@@ -1,0 +1,213 @@
+{
+ "cases": [
+  {
+   "expect": {
+    "heading": "INT. LAB - NIGHT",
+    "id": "1",
+    "kind": "heading"
+   },
+   "in_margin": true,
+   "numbered_mode": true,
+   "open_scene_id": null,
+   "text": "1 INT. LAB - NIGHT 1"
+  },
+  {
+   "expect": {
+    "heading": "OMITTED",
+    "id": "4",
+    "kind": "omitted"
+   },
+   "in_margin": true,
+   "numbered_mode": true,
+   "open_scene_id": null,
+   "text": "4 OMITTED 4"
+  },
+  {
+   "expect": {
+    "heading": "OMITTED",
+    "id": "2",
+    "kind": "omitted"
+   },
+   "in_margin": true,
+   "numbered_mode": true,
+   "open_scene_id": null,
+   "text": "2 OMITTED"
+  },
+  {
+   "expect": {
+    "heading": "OMITTED",
+    "id": "19",
+    "kind": "omitted"
+   },
+   "in_margin": true,
+   "numbered_mode": true,
+   "open_scene_id": null,
+   "text": "19 OMITTED. 19"
+  },
+  {
+   "expect": {
+    "heading": "OMITTED",
+    "id": "13",
+    "kind": "omitted"
+   },
+   "in_margin": true,
+   "numbered_mode": true,
+   "open_scene_id": null,
+   "text": "13 OMITTED[MOVED TO SCENE 12] 13"
+  },
+  {
+   "expect": {
+    "heading": "OMITTED",
+    "id": "5",
+    "kind": "omitted"
+   },
+   "in_margin": true,
+   "numbered_mode": true,
+   "open_scene_id": null,
+   "text": "5 OMITTED (SEE 4A) 5"
+  },
+  {
+   "expect": {
+    "heading": "OMITTED",
+    "id": "60",
+    "kind": "omitted"
+   },
+   "in_margin": true,
+   "numbered_mode": true,
+   "open_scene_id": null,
+   "text": "60 OMITTED - MOVED TO SCENE 12 60"
+  },
+  {
+   "expect": {
+    "heading": "OMITTED",
+    "id": "7",
+    "kind": "omitted"
+   },
+   "in_margin": true,
+   "numbered_mode": true,
+   "open_scene_id": null,
+   "text": "7 OMITTED. 7 *"
+  },
+  {
+   "expect": {
+    "heading": null,
+    "id": "1",
+    "kind": "continued"
+   },
+   "in_margin": true,
+   "numbered_mode": true,
+   "open_scene_id": null,
+   "text": "1 CONTINUED: 1"
+  },
+  {
+   "expect": {
+    "heading": null,
+    "id": "1",
+    "kind": "continued"
+   },
+   "in_margin": true,
+   "numbered_mode": true,
+   "open_scene_id": null,
+   "text": "1 CONTINUED: (2) 1"
+  },
+  {
+   "expect": {
+    "heading": "IN MISSION CONTROL - EVERYONE ON CONSOLES",
+    "id": "30",
+    "kind": "prose"
+   },
+   "in_margin": true,
+   "numbered_mode": true,
+   "open_scene_id": null,
+   "text": "30 IN MISSION CONTROL - EVERYONE ON CONSOLES 30"
+  },
+  {
+   "expect": {
+    "heading": "SCENE 31",
+    "id": "31",
+    "kind": "prose"
+   },
+   "in_margin": true,
+   "numbered_mode": true,
+   "open_scene_id": null,
+   "text": "31 -- Monks chant as the sun rises 31"
+  },
+  {
+   "expect": {
+    "heading": null,
+    "id": "7",
+    "kind": "duplicate"
+   },
+   "in_margin": true,
+   "numbered_mode": true,
+   "open_scene_id": "7",
+   "text": "7 STILL THE LAB 7"
+  },
+  {
+   "expect": {
+    "heading": "STILL THE LAB",
+    "id": "7",
+    "kind": "prose"
+   },
+   "in_margin": true,
+   "numbered_mode": true,
+   "open_scene_id": "6",
+   "text": "7 STILL THE LAB 7"
+  },
+  {
+   "expect": {
+    "heading": null,
+    "id": "19",
+    "kind": "unclassified"
+   },
+   "in_margin": true,
+   "numbered_mode": true,
+   "open_scene_id": null,
+   "text": "19 OMITTED. 27"
+  },
+  {
+   "expect": {
+    "heading": null,
+    "id": "45",
+    "kind": "unclassified"
+   },
+   "in_margin": true,
+   "numbered_mode": true,
+   "open_scene_id": null,
+   "text": "45 THE VAULT"
+  },
+  {
+   "expect": null,
+   "in_margin": false,
+   "numbered_mode": true,
+   "open_scene_id": null,
+   "text": "30 IN MISSION CONTROL 30"
+  },
+  {
+   "expect": null,
+   "in_margin": true,
+   "numbered_mode": false,
+   "open_scene_id": null,
+   "text": "30 IN MISSION CONTROL 30"
+  },
+  {
+   "expect": {
+    "heading": "SCENE 12",
+    "id": "12",
+    "kind": "prose"
+   },
+   "in_margin": true,
+   "numbered_mode": true,
+   "open_scene_id": null,
+   "text": "12 angry men walk in. 12"
+  },
+  {
+   "expect": null,
+   "in_margin": true,
+   "numbered_mode": true,
+   "open_scene_id": null,
+   "text": "Prose with no leading number."
+  }
+ ],
+ "contract": "classify_margin_row(text, in_margin, numbered_mode, open_scene_id) -> None | {kind: heading|omitted|prose|continued|duplicate|unclassified, id, heading}; part 1: every non-None row yields a printed_scene_numbers entry; part 2: an OMITTED-prefixed body is omitted whatever follows; part 3: margin-shaped rows fitting no known form are unclassified (loud), never dropped and never seated as a guess"
+}

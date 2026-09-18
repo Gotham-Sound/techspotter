@@ -39,7 +39,7 @@ function fixture() {
     .dialogue('Happy birthday to you...')
     .blank()
     .dualCue('LOLA', 'DENNY')
-    .dialogue('What?')
+    .dualDialogue('What?', 'Nothing.')
     .blank()
     .cue('MAN IN BLACK')
     .dialogue('You were told not to come.');

@@ -191,3 +191,68 @@ test('cold-open fence: an all-caps follow never fakes a cold open', async () => 
   assert.deepEqual(p.scenes.map((s) => s.heading), ['INT. LAB - NIGHT']);
   assert.deepEqual(p.characters.map((c) => c.name), ['MYRON']);
 });
+
+// #98 (the #87 three-part ruling, v0.2.6 correctness class): margin rows
+// through a real parse. OMITTED always seats flagged whatever follows;
+// CONTINUED and duplicate rows are consumed furniture; a margin-shaped
+// row fitting no form lands LOUD on unclassified_rows and rides the
+// export; a one-column dual stays a wide reject (the #69 hard condition
+// surfaced by the same policy note).
+test('#98: margin rows classify end to end', async () => {
+  const { buildPdf } = await import('./fixtures/pdfgen.js');
+  const num = (n, y, mid) => [
+    { x: 60, y, text: n },
+    { x: 108, y, text: mid },
+    { x: 552, y, text: n },
+  ];
+  const runs = [
+    ...num('1', 720, 'INT. LAB - NIGHT'),
+    { x: 266, y: 696, text: 'MYRON' },
+    { x: 180, y: 684, text: 'First scene line.' },
+    ...num('1', 660, 'CONTINUED:'),
+    { x: 180, y: 648, text: 'Still talking here.' },
+    ...num('2', 624, 'OMITTED'),
+    ...num('3', 600, 'OMITTED[MOVED TO SCENE 12]'),
+    { x: 60, y: 576, text: '19' },
+    { x: 108, y: 576, text: 'OMITTED.' },
+    { x: 552, y: 576, text: '27' },
+    ...num('4', 540, 'INT. VAULT - DAY'),
+    { x: 266, y: 516, text: 'WANDA' },
+    { x: 180, y: 504, text: 'Second scene line.' },
+  ];
+  const p = parseShow(await extractRuns(buildPdf([{ runs }])));
+  assert.deepEqual(p.scenes.map((s) => [s.id, s.heading, s.omitted ?? false]), [
+    ['1', 'INT. LAB - NIGHT', false],
+    ['2', 'OMITTED', true],
+    ['3', 'OMITTED', true],
+    ['4', 'INT. VAULT - DAY', false],
+  ]);
+  // CONTINUED never phantoms; the dialogue after it stays MYRON's.
+  assert.ok(p.scenes[0].dialogue_by_character.MYRON.includes('Still talking'));
+  assert.ok(!p.scenes[0].text.includes('CONTINUED'));
+  assert.deepEqual(p.rejects, []);
+  // The mismatched dotted-OMITTED row is LOUD, not dropped, not seated.
+  assert.equal(p.unclassified_rows.length, 1);
+  assert.equal(p.unclassified_rows[0].id, '19');
+  // ...and it rides the export.
+  const { buildSceneline, parseSceneline } = await import('../src/export/sceneline.js');
+  const { spotShow } = await import('../src/spot/index.js');
+  const out = buildSceneline(p, spotShow(p, {}), { sourceFile: 't.pdf' });
+  const back = parseSceneline(JSON.stringify(out));
+  assert.equal(back.parsed.unclassified_rows.length, 1);
+});
+
+test('#69 hard condition: a one-column dual stays a wide reject', async () => {
+  const { buildPdf } = await import('./fixtures/pdfgen.js');
+  const runs = [
+    { x: 108, y: 720, text: 'INT. LAB - NIGHT' },
+    { x: 266, y: 696, text: 'HOOT' },
+    { x: 266 + 90, y: 696, text: 'FRED' },
+    { x: 180, y: 684, text: 'Only the left column speaks.' },
+    { x: 108, y: 660, text: 'They stop.' },
+  ];
+  const p = parseShow(await extractRuns(buildPdf([{ runs }])));
+  assert.deepEqual(p.characters.map((c) => c.name), []);
+  assert.equal(p.rejects.length, 1);
+  assert.equal(p.rejects[0].reason, 'wide (dual dialogue?)');
+});

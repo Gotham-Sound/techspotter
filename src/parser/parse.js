@@ -4,7 +4,7 @@
 
 import { BANDS, bandOf } from './constants.js';
 import { groupLines } from './lines.js';
-import { parseHeading } from './heading.js';
+import { parseHeading, classifyMarginRow } from './heading.js';
 import { evaluateCue } from './cues.js';
 import { deriveCharacters, findMergeOffers } from './characters.js';
 import { derivePresence } from './presence.js';
@@ -71,17 +71,56 @@ export function parseShow(rawPages) {
   // Pre-scan (brief §3.1): any numbered heading anywhere puts the whole
   // document in numbered mode, where bare slugs are context, not
   // boundaries. No numbered headings at all = bare-slug mode.
-  // Numbered-prose entries never vote on mode and never bound outside
-  // numbered mode (#71 ruling: the shape only exists in numbered drafts).
-  const mode = headings.some((h) => h?.num && !h.prose) ? 'numbered' : 'bare-slug';
+  const mode = headings.some((h) => h?.num) ? 'numbered' : 'bare-slug';
 
+  // Margin-row dispatch (#87 three-part ruling via the corpus-vectored
+  // classifier, absorbed per #98): sequential and open-scene-aware, so
+  // both engines part these rows identically. Prose and OMITTED rows
+  // bound scenes (OMITTED seats as an empty flagged row and closes);
+  // CONTINUED and duplicate rows are pagination furniture, consumed;
+  // margin-shaped rows fitting no known form land LOUD on the
+  // unclassified_rows rail, never silently dropped, never seated as a
+  // guess.
   const bounds = [];
+  const marginRows = new Map();
+  const unclassifiedRows = [];
+  let openSid = null;
   flat.forEach((line, idx) => {
     const h = headings[idx];
-    if (!h) return;
-    if (mode === 'numbered' && !h.num) return;
-    if (h.prose && mode !== 'numbered') return;
-    bounds.push({ idx, h, line });
+    if (h && !(mode === 'numbered' && !h.num)) {
+      bounds.push({ idx, h, line });
+      openSid = h.num ?? null;
+      return;
+    }
+    if (mode !== 'numbered' || line.minX >= 72) return;
+    const row = classifyMarginRow(line.text, true, true, openSid);
+    if (!row) return;
+    marginRows.set(idx, row);
+    if (row.kind === 'omitted') {
+      bounds.push({
+        idx,
+        h: { num: row.id, heading: 'OMITTED' },
+        line: { ...line, text: 'OMITTED' },
+        omitted: true,
+      });
+      openSid = null;
+    } else if (row.kind === 'prose' || row.kind === 'heading') {
+      bounds.push({
+        idx,
+        h: { num: row.id, heading: row.heading },
+        line: { ...line, text: row.heading },
+      });
+      openSid = row.id;
+    } else if (row.kind === 'unclassified') {
+      unclassifiedRows.push({
+        kind: 'margin-row',
+        id: row.id,
+        text: line.text.trim(),
+        scene: openSid,
+        page: line.page,
+        anchor: { page: line.sheet, bbox: [line.minX, line.y - 3, line.maxX, line.y + 9] },
+      });
+    }
   });
 
   if (!bounds.length) {
@@ -154,6 +193,7 @@ export function parseShow(rawPages) {
     const scene = {
       id,
       heading: bound.h.heading,
+      ...(bound.omitted ? { omitted: true } : {}),
       page: bound.line.page,
       characters_speaking: [],
       action_text: '',
@@ -164,7 +204,47 @@ export function parseShow(rawPages) {
     const textLines = [bound.h.heading];
     const actionLines = [];
     let openSpeaker = null;
-    let openDual = null; // {left, right, boundary} while a dual block runs
+    let openDual = null; // dual block in flight: commit or reject at close
+
+    // #69 hard condition (policy dual note): BOTH columns must gather at
+    // least one dialogue line or the header stays a WIDE reject (keeps
+    // intercut cards and sets lists railed). Seat and attribute only at
+    // block close, when the condition is decidable.
+    const closeDual = () => {
+      const d = openDual;
+      if (!d) return;
+      openDual = null;
+      if (d.gotL && d.gotR) {
+        for (const half of [d.left, d.right]) {
+          if (!scene.characters_speaking.includes(half.name)) {
+            scene.characters_speaking.push(half.name);
+          }
+          scene.dialogue_by_character[half.name] ??= '';
+        }
+        record(d.header, 'cue', { cue: `${d.left.name} || ${d.right.name}` });
+        for (const { line: rl, band: rb } of d.rows) {
+          for (const s of rl.segments) {
+            const half = s.x0 >= d.boundary ? d.right : d.left;
+            scene.dialogue_by_character[half.name] +=
+              (scene.dialogue_by_character[half.name] ? '\n' : '') + s.text;
+          }
+          record(rl, rb, { speaker: `${d.left.name} || ${d.right.name}` });
+        }
+        return;
+      }
+      const name = d.header.text.trim();
+      const key = `${name}|wide (dual dialogue?)`;
+      if (!rejectMap.has(key)) {
+        rejectMap.set(key, { name, code: 'wide', reason: 'wide (dual dialogue?)', occurrences: [] });
+      }
+      rejectMap.get(key).occurrences.push({
+        scene: id,
+        page: d.header.page,
+        anchor: { page: d.header.sheet, bbox: [d.header.minX, d.header.y - 3, d.header.maxX, d.header.y + 9] },
+      });
+      record(d.header, 'rejected-cue');
+      for (const { line: rl, band: rb } of d.rows) record(rl, rb);
+    };
     const record = (line, band, extra = {}) => {
       scene.lines.push({
         text: line.text,
@@ -184,6 +264,13 @@ export function parseShow(rawPages) {
 
     for (let i = bound.idx + 1; i < end; i++) {
       const line = flat[i];
+      // Classified margin rows inside a region are pagination furniture
+      // (continued / duplicate) or already-railed unclassified rows:
+      // inventoried by classification, never scene content.
+      if (marginRows.has(i)) {
+        record(line, 'margin-row');
+        continue;
+      }
       textLines.push(line.text);
       const verdict = evaluateCue(line, flat[i + 1], { furniture });
 
@@ -193,16 +280,9 @@ export function parseShow(rawPages) {
       // one line here, the reference's own finding); a spanning segment
       // or any non-dialogue line ends the block.
       if (verdict?.dual) {
-        const d = verdict.dual;
+        closeDual();
         openSpeaker = null;
-        openDual = { ...d };
-        for (const half of [d.left, d.right]) {
-          if (!scene.characters_speaking.includes(half.name)) {
-            scene.characters_speaking.push(half.name);
-          }
-          scene.dialogue_by_character[half.name] ??= '';
-        }
-        record(line, 'cue', { cue: `${d.left.name} || ${d.right.name}` });
+        openDual = { ...verdict.dual, header: line, rows: [], gotL: false, gotR: false };
         continue;
       }
       if (openDual && !verdict) {
@@ -212,16 +292,15 @@ export function parseShow(rawPages) {
         );
         if ((band === 'dialogue' || band === 'paren') && !spanning) {
           for (const s of line.segments) {
-            const half = s.x0 >= openDual.boundary ? openDual.right : openDual.left;
-            scene.dialogue_by_character[half.name] +=
-              (scene.dialogue_by_character[half.name] ? '\n' : '') + s.text;
+            if (s.x0 >= openDual.boundary) openDual.gotR = true;
+            else openDual.gotL = true;
           }
-          record(line, band, { speaker: `${openDual.left.name} || ${openDual.right.name}` });
+          openDual.rows.push({ line, band });
           continue;
         }
-        openDual = null;
+        closeDual();
       } else if (verdict) {
-        openDual = null;
+        closeDual();
       }
 
       if (verdict?.accept) {
@@ -272,6 +351,7 @@ export function parseShow(rawPages) {
       record(line, band);
     }
 
+    closeDual();
     scene.action_text = actionLines.join('\n');
     scene.text = textLines.join('\n');
     scenes.push(scene);
@@ -303,6 +383,7 @@ export function parseShow(rawPages) {
     mode,
     scenes,
     characters,
+    unclassified_rows: unclassifiedRows,
     rejects: [...rejectMap.values()],
     merge_offers: findMergeOffers(characters),
     burn_ins: burnIns,

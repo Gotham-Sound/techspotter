@@ -22,6 +22,7 @@ export function render(state, act) {
   document.getElementById('mxWrap').hidden = !p;
   if (!p) return;
   renderRejRail(state, act, document.getElementById('rejRail'));
+  renderMarginRail(state, act, document.getElementById('marginRail'));
   renderTextRail(state, act, document.getElementById('textRail'));
   renderMergeRail(state, act, document.getElementById('mergeRail'));
   renderMatrix(state, act, document.getElementById('mx'));
@@ -61,6 +62,33 @@ function renderTextRail(state, act, rail) {
     x.onclick = () => act.keepTextChannel(name);
     pair.append(chip, x);
     rail.append(pair);
+  }
+}
+
+// Unclassified margin rows (#87 part 3, absorbed per #98): genuine
+// uncertainty is its own LOUD state. Informational chips: the row is
+// inventoried and surfaced, never seated as a guess; source peek shows
+// the page region.
+function renderMarginRail(state, act, rail) {
+  const rows = state.parsed.unclassified_rows ?? [];
+  rail.hidden = !rows.length;
+  rail.textContent = '';
+  if (!rows.length) return;
+  rail.append(
+    sp('cw-i', '?'),
+    sp(
+      'cw-t',
+      `${rows.length} margin-numbered row${rows.length === 1 ? '' : 's'} the parser could not classify — check these against the printed draft`,
+    ),
+  );
+  for (const r of rows) {
+    const chip = sp('cw-chip', `#${r.id} · ${r.text} · pg ${r.page}`);
+    chip.title = 'Unclassified margin row: not seated, not dropped. If this is a real scene form, it becomes a hub conformance vector.';
+    if (r.anchor) {
+      chip.onmouseenter = (e) => act.peekShow(e, r.anchor, `unclassified row · pg ${r.page}`);
+      chip.onmouseleave = () => act.peekHide();
+    }
+    rail.append(chip);
   }
 }
 

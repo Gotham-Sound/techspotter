@@ -1,12 +1,12 @@
-// MIRROR of scriptparse policy.json, policy_version 2026.09.15b
-// (absorbed per hub issue #68 through the merged train, main bytes; prior #60, #33). The DATA object below
+// MIRROR of scriptparse policy.json, policy_version 2026.09.17
+// (absorbed per hub issues #92 + #98; prior #68, #60, #33). The DATA object below
 // is the hub file verbatim, notes included: never edit it locally. A
 // divergence is a federation motion in scriptparse, not a local fix.
 // The functions after it are the JS interpreter, mirroring policy.py
 // (the Python reference interpreter) matching semantics.
 
 export const POLICY = Object.freeze({
-  "policy_version": "2026.09.15b",
+  "policy_version": "2026.09.17",
   "_comment": "The cross-language fold/gate policy (scriptparse PR #2, frozen 2026-07-26; issue #11 rulings executed 2026-07-27). This file IS the contract: declarative lists, maps, and enumerated rule types only: a JS interpreter must be able to mirror it exactly. No regexes, no code. policy.py is the Python reference interpreter.",
   "cue_stop_words": [
     "AND",
@@ -38,7 +38,7 @@ export const POLICY = Object.freeze({
     "require_both_margins": true,
     "scene_heading_fallback": "SCENE"
   },
-  "_numbered_prose_scenes_note": "RULED (Peter, 2026-09-15; issue #71): in a draft that is ALREADY numbered, a margin-number row is boundary evidence on its own; writers open intercut/mini-slug scenes with prose and the room addresses scenes by those numbers. Rule-type semantics: the row must carry the SAME id at BOTH ends (the filed both-margins fence) and start in the left margin, in a numbered-mode draft only (bare-slug drafts are never loosened: no numbers, no trust). Heading: the body itself when it is all caps (the mini-slug phrase), else '<scene_heading_fallback> <id>': the fallback is the guaranteed contract, the phrase is presentation. OMITTED and OMITTED. bodies never open a prose scene. Slug-shaped and OMITTED rows keep their existing handling, which runs first.",
+  "_numbered_prose_scenes_note": "RULED (Peter, 2026-09-15; issue #71): in a draft that is ALREADY numbered, a margin-number row is boundary evidence on its own; writers open intercut/mini-slug scenes with prose and the room addresses scenes by those numbers. Rule-type semantics: the row must carry the SAME id at BOTH ends (the filed both-margins fence) and start in the left margin, in a numbered-mode draft only (bare-slug drafts are never loosened: no numbers, no trust). Heading: the body itself when it is all caps (the mini-slug phrase), else '<scene_heading_fallback> <id>': the fallback is the guaranteed contract, the phrase is presentation. OMITTED and OMITTED. bodies never open a prose scene. Slug-shaped and OMITTED rows keep their existing handling, which runs first. Amended by the #87 three-part ruling (Peter, 2026-09-17): (1) a margin-numbered row ALWAYS yields a printed_scene_numbers entry; classifying the body never removes one (continuation furniture included). (2) An OMITTED-prefixed body seats as an empty flagged scene whatever follows the word: punctuation, brackets, parentheses, free-text notes, and revision stars are furniture; OMITTED is the load-bearing token. (3) A margin-shaped row fitting no known form is 'unclassified': its id rides the inventory flagged, the row surfaces on the unclassified_rows rail, and it is never dropped silently or seated as a guess. Forms pin as conformance vectors (vectors/margin_rows.json), so absorbing a new furniture form is a vector addition, not a code patch.",
   "dual_dialogue": {
     "min_gap_pt": 40
   },

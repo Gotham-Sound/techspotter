@@ -57,45 +57,70 @@ export function parseHeading(line) {
       heading = m[2].trim();
     }
   }
-  if (!isSlugText(heading)) {
-    return numberedProse(line, segs, num, heading, margins);
-  }
+  if (!isSlugText(heading)) return null;
   return { num, heading };
 }
 
-// Numbered-prose boundaries (policy numbered_prose_scenes; hub #71
-// ruling): a row whose SAME scene number sits on BOTH margins is a scene
-// boundary even when the middle is prose (launch intercuts, mini-slugs);
-// 31 numbered scenes folded across two real drafts without this. Both
-// margins are the fence (require_both_margins): a lone grazing number
-// never opens a scene. The row must start in the number column
-// (x0 < 72). All-caps middles ARE the heading (a mini-slug); prose
-// middles take the policy fallback. Only meaningful in numbered mode:
-// the caller ignores prose entries for mode detection and outside
-// numbered mode. OMITTED rows are out of scope here (unruled; parity
-// question flagged on the hub).
-function numberedProse(line, segs, num, heading, margins) {
-  const nps = POLICY.numbered_prose_scenes;
-  const x0 = line.minX ?? line.segments[0]?.x0 ?? 0;
-  if (!nps || x0 >= 72) return null;
-  let sid = null;
-  let body = null;
-  if (num !== null && margins >= 2 && segs.length >= 1) {
-    // parseHeading peeled the SAME number off both margins.
-    sid = num;
-    body = heading;
-  } else {
-    const full = (line.text ?? line.segments.map((g) => g.text).join(' ')).trim();
-    const m = full.match(/^([A-Z]*\d+[A-Z]?)\s+(.+?)\s+\1\s*\*?\s*$/);
-    if (!m) return null;
-    sid = m[1];
-    body = m[2].trim();
+// classify_margin_row (hub corpus contract, vectors/margin_rows.json;
+// the #87 three-part ruling, absorbed per #98): classify one TEXT line
+// as a margin-number row, pure, so both engines part these rows
+// identically and the NEXT furniture form lands LOUD as "unclassified"
+// instead of dropping silent. Subsumes the #71 numbered-prose path and
+// closes the OMITTED parity gap this bench flagged on #68 (dotted and
+// annotated OMITTED forms, the v0.2.6 correctness class).
+const OMITTED_ROW_RE =
+  /^\s*([A-Z]*\d+[A-Z]?)\s+OMITTED(?:[.:]|\s*\[[^\]]*\]|\s*\([^)]*\))*(?:\s+\1)?\s*\*?\s*$/i;
+const NUMBERED_PROSE_RE = /^\s*([A-Z]*\d+[A-Z]?)\s+(.+?)\s+\1\s*\*?\s*$/;
+const CONTINUED_BODY_RE = /^CONTINUED:?(?:\s*\(\d+\))?\.?$/;
+const LEADING_SID_RE = /^\s*([A-Z]*\d+[A-Z]?)\s+\S/;
+
+// Mirror of the reference's _clean_action: smart quotes and dashes to
+// ASCII, whitespace collapsed; parentheticals KEPT.
+function cleanActionText(s) {
+  return (s ?? '')
+    .replace(/[\u201c\u201d]/g, '"')
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u2014\u2013]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// Text-level scene heading: [sid] SLUG [sid] with optional star.
+function textHeading(t) {
+  const m = t.match(/^\s*(?:([A-Z]*\d+[A-Z]?)[\s.]+)?(.+?)(?:\s+\1)?\s*\*?\s*$/);
+  if (!m) return null;
+  const heading = m[2].trim();
+  if (!isSlugText(heading)) return null;
+  return { num: m[1] ? m[1].toUpperCase() : null, heading };
+}
+
+export function classifyMarginRow(text, inMargin, numberedMode, openSceneId = null) {
+  const t = (text ?? '').trim();
+  if (!t) return null;
+  const sh = textHeading(t);
+  if (sh && sh.num !== null) {
+    return { kind: 'heading', id: sh.num, heading: sh.heading };
   }
-  if (!body || /^OMITTED\.?$/i.test(body)) return null;
-  const caps = !/[a-z]/.test(body);
-  return {
-    num: sid,
-    heading: caps ? body : `${nps.scene_heading_fallback ?? 'SCENE'} ${sid}`,
-    prose: true,
-  };
+  const om = t.match(OMITTED_ROW_RE);
+  if (om) return { kind: 'omitted', id: om[1].toUpperCase(), heading: 'OMITTED' };
+  if (!(numberedMode && inMargin)) return null;
+  const pm = t.match(NUMBERED_PROSE_RE);
+  if (pm) {
+    const sid = pm[1].toUpperCase();
+    const body = pm[2].trim();
+    if (/^OMITTED\b/.test(body)) return { kind: 'omitted', id: sid, heading: 'OMITTED' };
+    if (CONTINUED_BODY_RE.test(body)) return { kind: 'continued', id: sid, heading: null };
+    if (openSceneId !== null && sid === openSceneId) {
+      return { kind: 'duplicate', id: sid, heading: null };
+    }
+    const cleaned = cleanActionText(body);
+    const fallback = POLICY.numbered_prose_scenes?.scene_heading_fallback ?? 'SCENE';
+    const heading = !/[a-z]/.test(cleaned) ? cleaned : `${fallback} ${sid}`;
+    return { kind: 'prose', id: sid, heading };
+  }
+  const lm = t.match(LEADING_SID_RE);
+  if (lm && !/[a-z]/.test(t)) {
+    return { kind: 'unclassified', id: lm[1].toUpperCase(), heading: null };
+  }
+  return null;
 }

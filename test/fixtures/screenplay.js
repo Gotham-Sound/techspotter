@@ -99,6 +99,16 @@ export class Screenplay {
     return this.#emit(X.paren, text);
   }
 
+  dualDialogue(a, b) {
+    const y = this.#y;
+    this.#pages.at(-1).push(
+      { x: X.dialogue, y, text: a },
+      { x: X.dialogue + 160, y, text: b },
+    );
+    this.#y -= LEADING;
+    return this;
+  }
+
   dialogue(...lines) {
     for (const t of lines) this.#emit(X.dialogue, t);
     return this;

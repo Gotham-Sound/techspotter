@@ -21,11 +21,12 @@ import {
 } from '../src/parser/policy.js';
 import { stripBurnIns, cell, repeatThreshold } from '../src/parser/burnin.js';
 import { evaluateCue, normCue, cueCharsetOk, splitDualHeader } from '../src/parser/cues.js';
+import { classifyMarginRow } from '../src/parser/heading.js';
 import { BANDS } from '../src/parser/constants.js';
 
-// The ack number for corpus 2026.09.17 (#92; the #79 canonicalization).
+// The ack number for corpus 2026.09.17a (#98; classify_margin_row).
 const MANIFEST_ACK =
-  '1335558d801a528a6fc8a98e7ab5f2afbe09cdb9ff3ddf1aebc4cf10f835299e';
+  '01802dbda53d2b3a5181b736cc66357c62b3c7c7bdac6c8decbaf7911256c78d';
 
 const dir = new URL('./conformance/', import.meta.url);
 const raw = (p) => readFileSync(new URL(p, dir));
@@ -130,6 +131,18 @@ test('dual.json: split_dual_header -> [left, right, boundary] or null', () => {
   assert.equal(cases.length, 7);
   for (const c of cases) {
     assert.deepEqual(splitDualHeader(c.words), c.expect, JSON.stringify(c.words));
+  }
+});
+
+test('margin_rows.json: classify_margin_row, all six kinds', () => {
+  const { cases } = vectors('margin_rows');
+  assert.equal(cases.length, 20);
+  for (const c of cases) {
+    assert.deepEqual(
+      classifyMarginRow(c.text, c.in_margin, c.numbered_mode, c.open_scene_id),
+      c.expect,
+      c.text,
+    );
   }
 });
 
